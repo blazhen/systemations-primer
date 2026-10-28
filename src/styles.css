@@ -1,0 +1,973 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+}
+
+:root {
+  --radius: 0.625rem;
+  --background: oklch(0.99 0.005 240);
+  --foreground: oklch(0.18 0.035 245);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.18 0.035 245);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.18 0.035 245);
+  --primary: oklch(0.62 0.19 250);
+  --primary-foreground: oklch(1 0 0);
+  --secondary: oklch(0.97 0.01 245);
+  --secondary-foreground: oklch(0.25 0.04 250);
+  --muted: oklch(0.96 0.01 245);
+  --muted-foreground: oklch(0.52 0.02 245);
+  --accent: oklch(0.97 0.01 245);
+  --accent-foreground: oklch(0.25 0.04 250);
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(0.925 0.015 245);
+  --input: oklch(0.925 0.015 245);
+  --ring: oklch(0.62 0.19 250);
+
+  /* Systemations exact hex brand palette */
+  --sys-navy: #102033;
+  --sys-body: #536273;
+  --sys-muted: #748094;
+  --sys-bg: #fbfcff;
+  --sys-border: #e3eaf3;
+  --sys-pill-border: #e5e7eb;
+  --sys-blue: #1e88e5;
+  --sys-blue-dark: #125fa2;
+  --sys-violet: #8b5cf6;
+  --sys-violet-dark: #6231bd;
+  --sys-teal: #14a79a;
+  --sys-green: #10b981;
+  --sys-green-text: #047857;
+  --sys-dark-ink: #070e1b;
+  --sys-card-shadow: 0 10px 30px rgba(20, 33, 61, 0.07);
+  --sys-btn-shadow: 0 16px 36px rgba(30, 136, 229, 0.22);
+}
+
+@layer base {
+  * {
+    border-color: var(--sys-border);
+  }
+  body {
+    background-color: var(--sys-bg);
+    color: var(--sys-body);
+    font-family:
+      "Inter",
+      -apple-system,
+      BlinkMacSystemFont,
+      sans-serif;
+  }
+}
+
+/* Gradients and background patterns */
+.sys-gradient-text {
+  background-image: linear-gradient(135deg, #0f5da8 0%, #14a79a 42%, #8458ec 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.sys-gradient-fill {
+  background-image: linear-gradient(to right, #1e88e5, #1e88e5, #8b5cf6);
+  color: #ffffff;
+  box-shadow: 0 16px 36px rgba(30, 136, 229, 0.22);
+}
+
+.sys-hero-pattern {
+  background-color: #f7fbff;
+  background-image:
+    radial-gradient(circle at 18% 15%, rgba(30, 136, 229, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 82% 20%, rgba(139, 92, 246, 0.14) 0%, transparent 45%),
+    radial-gradient(circle at 50% 88%, rgba(20, 167, 154, 0.09) 0%, transparent 40%),
+    linear-gradient(to right, rgba(30, 64, 175, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 64, 175, 0.06) 1px, transparent 1px);
+  background-size:
+    100% 100%,
+    100% 100%,
+    100% 100%,
+    44px 44px,
+    44px 44px;
+}
+
+/* Explore Your Options hero: muted steel-blue/slate ambient wash over
+   #F2F5F9, with a restrained 44px square grid that fades at the edges.
+   No pink, lavender or violet cast. Page-scoped so / and
+   /watch-before-your-call are unchanged. */
+.sys-explore-hero {
+  isolation: isolate;
+  background-color: #f2f5f9;
+  background-image:
+    radial-gradient(circle at 15% 35%, rgba(30, 106, 180, 0.18) 0%, transparent 68%),
+    radial-gradient(circle at 85% 30%, rgba(30, 41, 59, 0.11) 0%, transparent 68%);
+}
+
+.sys-explore-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, rgba(30, 64, 175, 0.075) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(30, 64, 175, 0.075) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse 100% 100% at 50% 50%, black 60%, transparent 100%);
+}
+
+/* Explore Your Options route scope: recolour the shared gradient classes
+   and violet tokens to a professional blue, slate and navy palette.
+   Scoped so / and /watch-before-your-call keep their original colours. */
+.sys-explore-scope {
+  --sys-violet: #1e6fa8;
+  --sys-violet-dark: #124f82;
+}
+.sys-explore-scope .sys-gradient-text {
+  background-image: linear-gradient(135deg, #1e6fa8 0%, #124f82 100%);
+}
+.sys-explore-scope .sys-gradient-fill {
+  background-image: linear-gradient(to right, #1e6fb8, #1e6fb8, #174a78);
+  color: #ffffff;
+  box-shadow: 0 16px 36px rgba(30, 106, 180, 0.22);
+}
+
+.sys-section-tinted {
+  background-image: linear-gradient(to bottom, #f7fbff, #f3f7fb);
+}
+
+/* Explore Your Options demo cards: always-visible selectable cards that
+   replace the small tab pills. Blue/slate/navy palette only, no pink or
+   lavender. Scoped to the explore route. */
+.sys-demo-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  border-radius: 20px;
+  background-color: #ffffff;
+  padding: 1.25rem;
+  text-align: left;
+  cursor: pointer;
+  min-width: 0;
+  transition:
+    border-color 0.2s,
+    box-shadow 0.2s,
+    transform 0.2s;
+}
+.sys-demo-card:focus-visible {
+  outline: none;
+}
+.sys-demo-card-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  padding: 0.125rem 0.5rem;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+  min-width: 0;
+  max-width: 100%;
+  flex-shrink: 1;
+}
+.sys-demo-card-badge-live {
+  background-color: rgba(30, 136, 229, 0.1);
+  color: #125fa2;
+  border: 1px solid rgba(30, 136, 229, 0.2);
+}
+.sys-demo-card-badge-guided {
+  background-color: rgba(20, 167, 154, 0.1);
+  color: #047857;
+  border: 1px solid rgba(20, 167, 154, 0.2);
+}
+
+.sys-divider-fade {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, #e3eaf3 20%, #e3eaf3 80%, transparent);
+}
+
+/* Global polish. NOTE: there is deliberately no blanket "reduced motion kills every
+   animation and transition" rule any more. That rule (durations clamped to 0.01ms) made
+   the whole page look dead on any PC with Windows "show animations" switched off.
+   Reduced motion now means gentler: fades and colour changes stay, large movement,
+   parallax and loops go (see the block at the end of the motion layer). */
+html {
+  scroll-padding-top: 5rem;
+}
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+::selection {
+  background-color: rgba(30, 136, 229, 0.28);
+  color: var(--sys-navy);
+}
+.sys-explore-scope a:focus-visible,
+.sys-explore-scope summary:focus-visible {
+  outline: 2px solid var(--sys-blue);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+/* Pipeline and contact demos: toast and drag feedback. Motion off for reduced-motion users. */
+@keyframes sys-crm-toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.sys-crm-toast {
+  animation: sys-crm-toast-in 180ms ease-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sys-crm-toast {
+    animation: none;
+  }
+  .sys-explore-scope .sys-crm-motion {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* ===== Explore motion layer (explore-motion.tsx and friends) =====
+   Only transform and opacity are animated. Everything is off under
+   prefers-reduced-motion. Final states never leave a transform behind
+   (animations use fill-mode "backwards"), so fixed children keep working. */
+@keyframes sys-rise {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sys-rise-sm {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sys-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes sys-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sys-word-rise {
+  from {
+    opacity: 0;
+    transform: translateY(0.6em);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes sys-text-shimmer {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+@keyframes sys-frame-spin {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+@keyframes sys-ping-dot {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  80%,
+  100% {
+    transform: scale(2.8);
+    opacity: 0;
+  }
+}
+@keyframes sys-pop-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+@keyframes sys-flash-bg {
+  0% {
+    background-color: rgba(30, 136, 229, 0.18);
+  }
+  100% {
+    background-color: transparent;
+  }
+}
+@keyframes sys-shimmer-move {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+@keyframes sys-float-y {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@keyframes sys-blob-a {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(8%, 10%, 0) scale(1.15);
+  }
+}
+@keyframes sys-blob-b {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(-9%, -8%, 0) scale(0.95);
+  }
+}
+@keyframes sys-feed-in {
+  from {
+    opacity: 0;
+    transform: translateY(calc(var(--d) * var(--step) - 14px)) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(calc(var(--d) * var(--step))) scale(1);
+  }
+}
+@keyframes sys-glow-drift {
+  0%,
+  100% {
+    transform: translate3d(-6%, 0, 0) scale(1);
+  }
+  50% {
+    transform: translate3d(6%, -8%, 0) scale(1.2);
+  }
+}
+
+/* Reveal on scroll. Hidden state exists only after mount (class set in an effect). */
+.sys-reveal-hidden {
+  opacity: 0;
+  transform: translateY(32px);
+}
+.sys-reveal-shown {
+  animation: sys-rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) var(--d, 0ms) backwards;
+}
+.sys-reveal-group.sys-reveal-hidden {
+  opacity: 1;
+  transform: none;
+}
+.sys-reveal-group.sys-reveal-hidden > * {
+  opacity: 0;
+  transform: translateY(32px);
+}
+.sys-reveal-group.sys-reveal-shown {
+  animation: none;
+}
+
+.sys-stagger > *,
+.sys-reveal-group.sys-reveal-shown > * {
+  animation: sys-rise 600ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(var(--d, 0ms) + var(--i, 0) * 80ms)
+    backwards;
+}
+.sys-stagger > :nth-child(1),
+.sys-reveal-group > :nth-child(1) {
+  --i: 0;
+}
+.sys-stagger > :nth-child(2),
+.sys-reveal-group > :nth-child(2) {
+  --i: 1;
+}
+.sys-stagger > :nth-child(3),
+.sys-reveal-group > :nth-child(3) {
+  --i: 2;
+}
+.sys-stagger > :nth-child(4),
+.sys-reveal-group > :nth-child(4) {
+  --i: 3;
+}
+.sys-stagger > :nth-child(5),
+.sys-reveal-group > :nth-child(5) {
+  --i: 4;
+}
+.sys-stagger > :nth-child(6),
+.sys-reveal-group > :nth-child(6) {
+  --i: 5;
+}
+.sys-stagger > :nth-child(7),
+.sys-reveal-group > :nth-child(7) {
+  --i: 6;
+}
+.sys-stagger > :nth-child(8),
+.sys-reveal-group > :nth-child(8) {
+  --i: 7;
+}
+
+.sys-lift {
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+.sys-lift:hover,
+.sys-lift:focus-visible {
+  transform: translateY(-2px);
+  box-shadow: 0 16px 34px rgba(20, 33, 61, 0.13);
+}
+.sys-pop {
+  animation: sys-pop-in 200ms ease-out backwards;
+}
+.sys-flash {
+  animation: sys-flash-bg 1.2s ease-out;
+}
+.sys-shimmer {
+  position: relative;
+  overflow: hidden;
+  background-color: #eaf0f7;
+}
+.sys-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: sys-shimmer-move 1.4s ease-in-out infinite;
+}
+.sys-float {
+  animation: sys-float-y 6s ease-in-out infinite;
+}
+
+/* Hero ambient blobs */
+.sys-hero-ambient {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+/* The drift wrapper takes the scroll parallax; the blob inside keeps its own loop. */
+.sys-hero-drift {
+  position: absolute;
+  inset: 0;
+  will-change: transform;
+}
+.sys-hero-drift-a {
+  transform: translate3d(0, calc(var(--py, 0px) * 0.22), 0);
+}
+.sys-hero-drift-b {
+  transform: translate3d(0, calc(var(--py, 0px) * 0.38), 0);
+}
+.sys-hero-blob {
+  position: absolute;
+  width: 46vmax;
+  height: 46vmax;
+  max-width: 620px;
+  max-height: 620px;
+  border-radius: 9999px;
+  filter: blur(70px);
+  opacity: 0.4;
+  will-change: transform;
+}
+.sys-hero-blob-a {
+  top: -18%;
+  left: -8%;
+  background: var(--sys-blue);
+  animation: sys-blob-a 14s ease-in-out infinite;
+}
+.sys-hero-blob-b {
+  top: 4%;
+  right: -10%;
+  background: var(--sys-violet);
+  animation: sys-blob-b 16s ease-in-out infinite;
+}
+
+/* Hero heading: words rise in sequence once mounted (the class is added after mount,
+   so server HTML and no-JS show the plain heading). */
+.sys-word {
+  display: inline-block;
+}
+.sys-words-on .sys-word {
+  animation: sys-word-rise 700ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(120ms + var(--w, 0) * 90ms)
+    backwards;
+}
+.sys-hero-fade-on {
+  animation: sys-fade 600ms ease-out backwards;
+}
+/* "is possible." slow shimmer sweep across the brand gradient */
+.sys-explore-scope .sys-shimmer-text {
+  background-image: linear-gradient(
+    105deg,
+    #1e6fa8 0%,
+    #124f82 30%,
+    #5cb2f0 48%,
+    #124f82 66%,
+    #1e6fa8 100%
+  );
+  background-size: 250% 100%;
+  background-position: 100% 0;
+  animation: sys-text-shimmer 5s ease-in-out 1.2s infinite;
+}
+
+/* Buttons: hover and press feedback (transform and colour only) */
+.sys-press {
+  transition:
+    transform 160ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+.sys-press:hover {
+  transform: translateY(-1px);
+}
+.sys-press:active {
+  transform: translateY(0) scale(0.97);
+}
+
+/* Segmented Example/Business toggle: the pill slides between the two options */
+.sys-seg {
+  position: relative;
+  border-radius: 9999px;
+  padding: 4px;
+  background-color: #ffffff;
+  border: 1px solid var(--sys-border);
+  box-shadow: var(--sys-card-shadow);
+}
+.sys-seg-pill {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 9999px;
+  background-color: var(--sys-navy);
+  box-shadow: 0 6px 16px rgba(16, 32, 51, 0.25);
+  transition: transform 380ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sys-seg-pill[data-pos="1"] {
+  transform: translateX(100%);
+}
+
+/* Ending section surfaces: lift with a soft glow (glow fades via opacity on a pseudo element) */
+.sys-surface {
+  position: relative;
+  isolation: isolate;
+  border-radius: 16px;
+  transition: transform 260ms cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+.sys-surface::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 16px;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow:
+    0 0 0 3px rgba(30, 136, 229, 0.14),
+    0 18px 40px rgba(30, 136, 229, 0.22);
+  transition: opacity 260ms ease;
+}
+.sys-surface:hover,
+.sys-surface:has(:focus-visible) {
+  transform: translateY(-3px);
+}
+.sys-surface:hover::after,
+.sys-surface:has(:focus-visible)::after {
+  opacity: 1;
+}
+
+/* Icon tiles tilt and pop when their card is hovered or focused */
+.sys-icon-tile {
+  transition: transform 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.sys-icon-tile:hover,
+.sys-demo-card:hover .sys-icon-tile,
+.sys-demo-card:focus-visible .sys-icon-tile {
+  transform: rotate(-8deg) scale(1.12);
+}
+.sys-demo-card[aria-selected="true"] .sys-icon-tile {
+  transform: scale(1.06);
+}
+
+/* Pulsing status dot (badges) */
+.sys-pulse-dot {
+  position: relative;
+}
+.sys-pulse-dot::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 9999px;
+  background-color: inherit;
+  animation: sys-ping-dot 1.9s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+/* Tab panel change: outgoing panel fades quickly, incoming slides up and fades, first children stagger */
+.sys-panel-in {
+  animation: sys-panel-in 350ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.sys-panel-out {
+  opacity: 0;
+  transform: translateY(-8px);
+  transition:
+    opacity 120ms ease-in,
+    transform 120ms ease-in;
+}
+.sys-panel-in > [role="tabpanel"] > :not(:only-child):nth-child(-n + 5),
+.sys-panel-in > [role="tabpanel"] > :only-child > :nth-child(-n + 5) {
+  animation: sys-rise-sm 500ms cubic-bezier(0.2, 0.8, 0.2, 1) calc(140ms + var(--pi, 0) * 70ms)
+    backwards;
+}
+.sys-panel-in > [role="tabpanel"] > :nth-child(2),
+.sys-panel-in > [role="tabpanel"] > :only-child > :nth-child(2) {
+  --pi: 1;
+}
+.sys-panel-in > [role="tabpanel"] > :nth-child(3),
+.sys-panel-in > [role="tabpanel"] > :only-child > :nth-child(3) {
+  --pi: 2;
+}
+.sys-panel-in > [role="tabpanel"] > :nth-child(4),
+.sys-panel-in > [role="tabpanel"] > :only-child > :nth-child(4) {
+  --pi: 3;
+}
+.sys-panel-in > [role="tabpanel"] > :nth-child(5),
+.sys-panel-in > [role="tabpanel"] > :only-child > :nth-child(5) {
+  --pi: 4;
+}
+
+/* Demo tab cards: spotlight, sliding gradient frame, active glow */
+.sys-demo-card {
+  position: relative;
+  overflow: visible;
+}
+.sys-demo-card > * {
+  position: relative;
+  z-index: 1;
+}
+.sys-demo-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: 20px;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(
+    220px circle at var(--mx, 50%) var(--my, 30%),
+    rgba(30, 136, 229, 0.16),
+    transparent 70%
+  );
+  transition: opacity 250ms ease;
+}
+@media (hover: hover) and (pointer: fine) {
+  .sys-demo-card:hover::before {
+    opacity: 1;
+  }
+}
+.sys-tab-frame {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  pointer-events: none;
+  border-radius: 20px;
+  padding: 2px;
+  overflow: hidden;
+  opacity: 0;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  transition:
+    translate 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    width 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    height 450ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    opacity 300ms ease;
+}
+.sys-tab-frame::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 220%;
+  aspect-ratio: 1;
+  background: conic-gradient(
+    from 0deg,
+    var(--sys-blue),
+    var(--sys-teal) 25%,
+    rgba(30, 136, 229, 0.2) 50%,
+    var(--sys-blue) 75%,
+    var(--sys-blue)
+  );
+  animation: sys-frame-spin 3.6s linear infinite;
+}
+.sys-tab-frame[data-ready="false"] {
+  transition: none;
+}
+.sys-reveal-group:not(.sys-reveal-hidden) > .sys-tab-frame[data-ready="true"] {
+  opacity: 1;
+}
+.sys-demo-card:hover:not([aria-selected="true"]) {
+  transform: translateY(-3px);
+}
+.sys-demo-card::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 20px;
+  pointer-events: none;
+  opacity: 0;
+  box-shadow:
+    0 0 0 3px rgba(30, 136, 229, 0.22),
+    0 14px 30px rgba(30, 136, 229, 0.18);
+  transition: opacity 0.25s ease;
+}
+.sys-demo-card[aria-selected="true"]::after {
+  opacity: 1;
+}
+
+/* Scroll progress bar */
+.sys-scrollbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  z-index: 60;
+  pointer-events: none;
+  transform-origin: 0 50%;
+  transform: scaleX(0);
+  background-image: linear-gradient(to right, var(--sys-blue), var(--sys-teal), var(--sys-violet));
+}
+
+/* Hero "system at work" stage */
+.sys-feed {
+  position: relative;
+  width: 100%;
+  height: 80px;
+  --step: 28px;
+  transition: opacity 0.5s ease;
+}
+.sys-feed[data-fading="true"] {
+  opacity: 0;
+}
+.sys-feed-card {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 24px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 10.5px;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.92);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(6px);
+  transform: translateY(calc(var(--d) * var(--step)));
+  opacity: calc(1 - var(--d) * 0.26);
+  transition:
+    transform 0.55s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.55s ease;
+  animation: sys-feed-in 0.55s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.sys-feed-card[data-d="3"] {
+  display: none;
+}
+.sys-feed-card[data-d="4"] {
+  opacity: 0;
+}
+.sys-feed-glow {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+.sys-feed-glow > span {
+  position: absolute;
+  top: 10%;
+  left: 20%;
+  width: 60%;
+  height: 80%;
+  border-radius: 9999px;
+  filter: blur(40px);
+  opacity: 0.5;
+  background: radial-gradient(circle, var(--sys-blue), var(--sys-violet) 60%, transparent 72%);
+  animation: sys-glow-drift 12s ease-in-out infinite;
+}
+.sys-feed-paused .sys-feed-glow > span,
+.sys-feed-paused .sys-feed-card {
+  animation-play-state: paused;
+}
+@media (min-width: 640px) {
+  .sys-feed {
+    height: 176px;
+    --step: 46px;
+  }
+  .sys-feed-card {
+    height: 38px;
+    padding: 0 14px;
+    font-size: 13px;
+    border-radius: 10px;
+    gap: 10px;
+  }
+  .sys-feed-card[data-d="3"] {
+    display: flex;
+  }
+}
+
+/* Reduced motion = a gentler version, not a dead page. Fades, colour changes and glows
+   stay (with the same stagger), so the page still feels alive on a PC that has Windows
+   "show animations" off. Only travel (rise, slide, tilt, lift), parallax and endless
+   loops are removed. */
+@media (prefers-reduced-motion: reduce) {
+  .sys-reveal-hidden,
+  .sys-reveal-group.sys-reveal-hidden > * {
+    transform: none;
+  }
+  .sys-reveal-shown {
+    animation-name: sys-fade;
+    animation-duration: 500ms;
+  }
+  .sys-stagger > *,
+  .sys-reveal-group.sys-reveal-shown > * {
+    animation-name: sys-fade;
+    animation-duration: 500ms;
+  }
+  .sys-pop {
+    animation-name: sys-fade;
+  }
+  .sys-panel-in {
+    animation-name: sys-fade;
+  }
+  .sys-panel-in > [role="tabpanel"] > :not(:only-child):nth-child(-n + 5),
+  .sys-panel-in > [role="tabpanel"] > :only-child > :nth-child(-n + 5) {
+    animation-name: sys-fade;
+  }
+  .sys-panel-out {
+    transform: none;
+  }
+  .sys-words-on .sys-word {
+    animation-name: sys-fade;
+  }
+  /* loops off */
+  .sys-float,
+  .sys-hero-blob,
+  .sys-feed-glow > span,
+  .sys-feed-card,
+  .sys-pulse-dot::after,
+  .sys-tab-frame::before,
+  .sys-explore-scope .sys-shimmer-text {
+    animation: none;
+  }
+  .sys-tab-frame::before {
+    transform: translate(-50%, -50%);
+  }
+  .sys-explore-scope .sys-shimmer-text {
+    background-position: 50% 0;
+  }
+  .sys-shimmer::after {
+    animation: none;
+    display: none;
+  }
+  /* no travel on hover or press */
+  .sys-lift:hover,
+  .sys-lift:focus-visible,
+  .sys-press:hover,
+  .sys-press:active,
+  .sys-surface:hover,
+  .sys-surface:has(:focus-visible),
+  .sys-demo-card:hover:not([aria-selected="true"]),
+  .sys-icon-tile:hover,
+  .sys-demo-card:hover .sys-icon-tile,
+  .sys-demo-card:focus-visible .sys-icon-tile,
+  .sys-demo-card[aria-selected="true"] .sys-icon-tile {
+    transform: none;
+  }
+  .sys-tab-frame,
+  .sys-seg-pill,
+  .sys-feed-card {
+    transition-property: opacity;
+  }
+}
