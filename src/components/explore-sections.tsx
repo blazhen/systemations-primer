@@ -41,7 +41,7 @@ export function EndingSection() {
             className="text-center text-lg font-semibold sm:text-xl"
             style={{
               color: "var(--sys-navy)",
-              fontFamily: "'Plus Jakarta Sans', sans-serif",
+              fontFamily: "var(--sys-font-display)",
             }}
           >
             Bring your questions to your Explore Your Options call.
@@ -375,7 +375,7 @@ function Disclosure({
         >
           <span
             className="text-base font-bold"
-            style={{ color: "var(--sys-navy)", fontFamily: "'Plus Jakarta Sans', sans-serif" }}
+            style={{ color: "var(--sys-navy)", fontFamily: "var(--sys-font-display)" }}
           >
             {summary}
           </span>
@@ -425,7 +425,8 @@ export function Footer() {
             href="https://www.systemations.ai/privacy"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 font-semibold transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+            aria-label="Privacy policy (opens in a new tab)"
+            className="inline-flex min-h-11 items-center gap-1 font-semibold transition-colors hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
             style={{ color: "rgba(255, 255, 255, 0.7)" }}
           >
             Privacy

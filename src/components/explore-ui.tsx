@@ -61,7 +61,7 @@ export function SectionHeader({
       <h2
         className="mt-4 text-balance text-3xl font-bold tracking-[-0.02em] sm:text-4xl"
         style={{
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontFamily: "var(--sys-font-display)",
           color: "var(--sys-navy)",
         }}
       >
@@ -136,6 +136,10 @@ export function AgentAvatar({ profile, size = 44 }: { profile: AgentProfile; siz
     <img
       src={profile.photoUrl}
       alt={profile.alt}
+      width={size}
+      height={size}
+      loading="lazy"
+      decoding="async"
       className="shrink-0 rounded-full object-cover"
       style={{
         width: size,
@@ -172,6 +176,9 @@ export function Wordmark({ small = false }: { small?: boolean }) {
     <img
       src={LOGO_URL}
       alt="Systemations"
+      height={small ? 24 : 28}
+      decoding="async"
+      loading={small ? "lazy" : undefined}
       style={{ height: small ? 24 : 28, width: "auto", display: "block" }}
       className="shrink-0"
     />
@@ -180,7 +187,7 @@ export function Wordmark({ small = false }: { small?: boolean }) {
 
 export function BrandBar() {
   return (
-    <header className="sticky top-3 z-50 px-4 sm:px-6">
+    <header className="sys-sticky-header z-50">
       <div
         className="mx-auto flex h-14 w-full max-w-[1120px] items-center justify-between px-5 sm:px-6"
         style={{
@@ -293,7 +300,7 @@ function SystemAtWorkStage() {
       <div className="sys-feed-glow" aria-hidden="true">
         <span />
       </div>
-      <p className="relative text-[10px] leading-tight text-white/60 sm:text-xs">
+      <p className="relative text-[13px] leading-tight text-white/60">
         A day of the system working. Example, fictional data.
       </p>
 
@@ -302,7 +309,7 @@ function SystemAtWorkStage() {
           {STAGE_EVENTS.map((ev) => (
             <li
               key={ev.text}
-              className="flex items-center gap-2 rounded-lg px-2.5 py-1 text-[10px] text-white/90 sm:px-3.5 sm:py-2 sm:text-[13px]"
+              className="flex items-center gap-2 rounded-lg px-2.5 py-1 text-[13px] text-white/90 sm:px-3.5 sm:py-2"
               style={{
                 background: "rgba(255,255,255,0.08)",
                 border: "1px solid rgba(255,255,255,0.12)",
@@ -329,7 +336,7 @@ function SystemAtWorkStage() {
         </div>
       )}
 
-      <p className="relative text-[10px] font-medium leading-tight text-white/75 sm:text-xs">
+      <p className="relative text-[13px] font-medium leading-tight text-white/75">
         Dan's video is coming soon.
       </p>
     </div>
@@ -366,11 +373,11 @@ export function VideoHero() {
           <Pill variant="violet">AI Operations Engine</Pill>
         </span>
         <h1
-          className={`mt-5 text-balance text-[30px] font-bold tracking-[-0.02em] sm:text-[42px] ${
+          className={`mt-5 text-balance text-[clamp(28px,7.5vw,42px)] font-bold tracking-[-0.02em] ${
             armed ? "sys-words-on" : ""
           }`}
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontFamily: "var(--sys-font-display)",
             lineHeight: 1.1,
             color: "var(--sys-navy)",
           }}
@@ -405,7 +412,9 @@ export function VideoHero() {
             }}
           >
             <div
-              className="relative aspect-video w-full overflow-hidden rounded-[6px] sm:rounded-[16px]"
+              className={`relative w-full overflow-hidden rounded-[6px] sm:aspect-video sm:rounded-[16px] ${
+                welcomeVideoUrl ? "aspect-video" : "aspect-[4/3]"
+              }`}
               style={{
                 backgroundColor: "#070E1B",
                 backgroundImage:

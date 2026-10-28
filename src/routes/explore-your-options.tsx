@@ -1,26 +1,15 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { ExploreYourOptionsPage } from "../components/ExploreYourOptionsPage";
+import { buildHead } from "../lib/seo";
 
 export const Route = createFileRoute("/explore-your-options")({
-  head: () => ({
-    meta: [
-      { title: "Explore your options - Systemations" },
-      {
-        name: "description",
-        content:
-          "Before your Explore Your Options call, see what is possible. Try guided examples of enquiries, follow-up and admin running in your business.",
-      },
-      { name: "robots", content: "noindex, nofollow" },
-      { property: "og:title", content: "Explore your options - Systemations" },
-      {
-        property: "og:description",
-        content:
-          "Before your Explore Your Options call, see what is possible. Try guided examples of enquiries, follow-up and admin running in your business.",
-      },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () =>
+    buildHead({
+      title: "Explore Your Options | Systemations",
+      description:
+        "See what an AI operations system could do for your small business before your call. Try guided examples of enquiries, quotes, follow-up and admin running on their own.",
+      path: "/explore-your-options",
+    }),
   component: ExploreRoutePage,
 });
 

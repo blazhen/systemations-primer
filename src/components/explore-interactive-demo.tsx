@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { Suspense, lazy, useCallback, useEffect, useRef, useState } from "react";
 import {
   ArrowRight,
   FileText,
@@ -12,18 +12,42 @@ import {
 } from "lucide-react";
 import { loadDemoValue, saveDemoValue, DEMO_KEYS } from "../lib/demo-storage";
 import { CrmProvider, CrmToast } from "./explore-crm-state";
-import { PipelineDemo } from "./explore-demo-pipeline";
-import { ContactDemo } from "./explore-demo-contact";
-import { QuoteDemo } from "./explore-demo-quote";
 import { type TextScenarioId } from "./explore-data";
 import { IconTile, SectionHeader } from "./explore-ui";
 import { Reveal } from "./explore-motion";
-import { BehindDemo, PhoneDemo } from "./explore-demo-extra";
-import { LiveChatWidget } from "./explore-live-chat";
-import { XeroDemo } from "./explore-demo-xero";
-import { InboxDemo } from "./explore-demo-inbox";
 import { BusinessBriefPanel, useBusinessBrief, type BusinessBrief } from "./explore-business-brief";
-import { TextDemo } from "./explore-demo";
+
+// Each demo panel is its own chunk, fetched when its tab is first opened.
+const PipelineDemo = lazy(() =>
+  import("./explore-demo-pipeline").then((m) => ({ default: m.PipelineDemo })),
+);
+const ContactDemo = lazy(() =>
+  import("./explore-demo-contact").then((m) => ({ default: m.ContactDemo })),
+);
+const QuoteDemo = lazy(() =>
+  import("./explore-demo-quote").then((m) => ({ default: m.QuoteDemo })),
+);
+const BehindDemo = lazy(() =>
+  import("./explore-demo-extra").then((m) => ({ default: m.BehindDemo })),
+);
+const PhoneDemo = lazy(() =>
+  import("./explore-demo-extra").then((m) => ({ default: m.PhoneDemo })),
+);
+const XeroDemo = lazy(() => import("./explore-demo-xero").then((m) => ({ default: m.XeroDemo })));
+const InboxDemo = lazy(() =>
+  import("./explore-demo-inbox").then((m) => ({ default: m.InboxDemo })),
+);
+const TextDemo = lazy(() => import("./explore-demo").then((m) => ({ default: m.TextDemo })));
+
+function PanelSkeleton() {
+  return (
+    <div
+      className="sys-shimmer min-h-[420px] rounded-[20px] sm:min-h-[560px]"
+      role="status"
+      aria-label="Loading the demo"
+    />
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Interactive demo section (section 5)
@@ -164,6 +188,19 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
     return () => ro.disconnect();
   }, [tab]);
 
+  // On phones the cards form a sideways scroller: keep the chosen card in view.
+  // Scrolls only the scroller (never the page), and only when it actually overflows.
+  useEffect(() => {
+    const scroller = cardsRef.current?.firstElementChild as HTMLElement | null;
+    const el = tabRefs.current[DEMO_CARDS.findIndex((c) => c.id === tab)];
+    if (!scroller || !el || scroller.scrollWidth <= scroller.clientWidth + 1) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    scroller.scrollTo({
+      left: el.offsetLeft - (scroller.clientWidth - el.offsetWidth) / 2,
+      behavior: reduce ? "auto" : "smooth",
+    });
+  }, [tab]);
+
   // Soft spotlight that follows a mouse pointer over a card (fine pointers only).
   const onCardPointerMove = (e: React.PointerEvent<HTMLButtonElement>) => {
     if (e.pointerType !== "mouse") return;
@@ -264,12 +301,11 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
             stagger
             role="tablist"
             aria-label="Choose a demo"
-            className="relative grid grid-cols-2 gap-3 sm:grid-cols-4"
+            className="sys-tab-scroller relative flex gap-3 overflow-x-auto sm:grid sm:grid-cols-4 sm:overflow-visible"
           >
             {DEMO_CARDS.map((c, idx) => {
               const active = tab === c.id;
               const Icon = c.icon;
-              const isLast = DEMO_CARDS.length % 2 === 1 && idx === DEMO_CARDS.length - 1;
               return (
                 <button
                   key={c.id}
@@ -285,9 +321,7 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                   onClick={() => handleCardSelect(c.id)}
                   onKeyDown={(e) => onTabKeyDown(e, idx)}
                   onPointerMove={onCardPointerMove}
-                  className={`sys-demo-card focus-visible:ring-4 focus-visible:ring-blue-300/50 ${
-                    isLast ? "col-span-2 sm:col-span-1" : ""
-                  }`}
+                  className="sys-demo-card focus-visible:ring-4 focus-visible:ring-blue-300/50"
                   style={{
                     border: `1px solid ${active ? "var(--sys-blue)" : "var(--sys-border)"}`,
                     boxShadow: active
@@ -295,7 +329,7 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                       : "var(--sys-card-shadow)",
                   }}
                 >
-                  <div className="flex min-w-0 items-center justify-between gap-2">
+                  <div className="flex min-w-0 flex-col items-start gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <IconTile
                       icon={Icon}
                       color={active ? "var(--sys-blue)" : "var(--sys-violet)"}
@@ -324,12 +358,15 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                       className="text-sm font-bold leading-tight"
                       style={{
                         color: "var(--sys-navy)",
-                        fontFamily: "'Plus Jakarta Sans', sans-serif",
+                        fontFamily: "var(--sys-font-display)",
                       }}
                     >
                       {c.label}
                     </h3>
-                    <p className="mt-1 text-xs leading-snug" style={{ color: "var(--sys-body)" }}>
+                    <p
+                      className="mt-1 hidden text-[13px] leading-snug sm:block"
+                      style={{ color: "var(--sys-body)" }}
+                    >
                       {c.description}
                     </p>
                   </div>
@@ -349,7 +386,7 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
           </Reveal>
         </div>
 
-        <div className="sys-seg mx-auto mt-8 grid max-w-[520px] grid-cols-2">
+        <div className="sys-seg mx-auto mt-8 grid w-full max-w-[520px] grid-cols-2">
           <span
             className="sys-seg-pill"
             aria-hidden="true"
@@ -387,7 +424,7 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
               className="text-base font-bold"
               style={{
                 color: "var(--sys-navy)",
-                fontFamily: "'Plus Jakarta Sans', sans-serif",
+                fontFamily: "var(--sys-font-display)",
               }}
             >
               {activeCard?.label}
@@ -411,14 +448,16 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-text"
                 tabIndex={0}
               >
-                <TextDemo
-                  scenario={textScenario}
-                  onScenario={setTextScenario}
-                  mode={textMode}
-                  onModeChange={setTextMode}
-                  brief={brief}
-                  demoMode={demoMode}
-                />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <TextDemo
+                    scenario={textScenario}
+                    onScenario={setTextScenario}
+                    mode={textMode}
+                    onModeChange={setTextMode}
+                    brief={brief}
+                    demoMode={demoMode}
+                  />
+                </Suspense>
               </div>
             )}
             {shownTab === "phone" && (
@@ -428,7 +467,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-phone"
                 tabIndex={0}
               >
-                <PhoneDemo brief={brief} demoMode={demoMode} />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <PhoneDemo brief={brief} demoMode={demoMode} />
+                </Suspense>
               </div>
             )}
             {shownTab === "behind" && (
@@ -438,7 +479,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-behind"
                 tabIndex={0}
               >
-                <BehindDemo />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <BehindDemo />
+                </Suspense>
               </div>
             )}
             {shownTab === "pipeline" && (
@@ -448,7 +491,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-pipeline"
                 tabIndex={0}
               >
-                <PipelineDemo />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <PipelineDemo />
+                </Suspense>
               </div>
             )}
             {shownTab === "contact" && (
@@ -458,7 +503,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-contact"
                 tabIndex={0}
               >
-                <ContactDemo />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <ContactDemo />
+                </Suspense>
               </div>
             )}
             {shownTab === "quote" && (
@@ -468,7 +515,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-quote"
                 tabIndex={0}
               >
-                <QuoteDemo />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <QuoteDemo />
+                </Suspense>
               </div>
             )}
             {shownTab === "xero" && (
@@ -478,7 +527,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-xero"
                 tabIndex={0}
               >
-                <XeroDemo />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <XeroDemo />
+                </Suspense>
               </div>
             )}
             {shownTab === "inbox" && (
@@ -488,7 +539,9 @@ export function InteractiveDemo({ demoRef }: { demoRef: React.RefObject<HTMLDivE
                 aria-labelledby="demo-tab-inbox"
                 tabIndex={0}
               >
-                <InboxDemo />
+                <Suspense fallback={<PanelSkeleton />}>
+                  <InboxDemo />
+                </Suspense>
               </div>
             )}
           </div>

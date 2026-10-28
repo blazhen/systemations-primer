@@ -11,11 +11,15 @@ export function WatchBeforeYourCallPage() {
       style={{
         backgroundColor: "var(--sys-bg)",
         color: "var(--sys-body)",
-        fontFamily: "'Inter', sans-serif",
+        fontFamily: "var(--sys-font-body)",
       }}
     >
+      <a href="#main" className="sys-skip-link">
+        Skip to main content
+      </a>
+
       {/* 0. Top bar */}
-      <header className="sticky top-3 z-50 px-4 sm:px-6">
+      <header className="sys-sticky-header z-50">
         <div
           className="mx-auto flex h-14 w-full max-w-[1120px] items-center justify-between px-5 sm:px-6"
           style={{
@@ -32,6 +36,8 @@ export function WatchBeforeYourCallPage() {
             <img
               src={LOGO_URL}
               alt="Systemations"
+              height={28}
+              decoding="async"
               style={{ height: 28, width: "auto", display: "block" }}
               className="shrink-0"
             />
@@ -61,7 +67,7 @@ export function WatchBeforeYourCallPage() {
         </div>
       </header>
 
-      <main>
+      <main id="main" tabIndex={-1}>
         {/* 1. Hero */}
         <HeroSection />
 

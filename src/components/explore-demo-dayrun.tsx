@@ -463,6 +463,19 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
+/** True under 640px. False on the server and first render, then updates. */
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setPhone(mq.matches);
+    const onChange = () => setPhone(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return phone;
+}
+
 /** Eases toward `target` frame by frame. Instant when motion is reduced. */
 function useEased(target: number, reduced: boolean): number {
   const [value, setValue] = useState(target);
@@ -502,14 +515,17 @@ function Tile({
   const shown = useEased(value, reduced);
   return (
     <div
-      className="min-w-0 rounded-[14px] bg-white px-3 py-2.5"
+      className="min-w-0 rounded-[14px] bg-white px-3 py-2 sm:py-2.5"
       style={{ border: "1px solid var(--sys-border)", borderTop: `3px solid ${tone}` }}
     >
-      <p className="truncate text-[11px] font-semibold" style={{ color: "var(--sys-muted)" }}>
+      <p
+        className="truncate text-[13px] font-semibold sm:text-[11px]"
+        style={{ color: "var(--sys-muted)" }}
+      >
         {label}
       </p>
       <p
-        className="mt-0.5 truncate text-lg font-bold tabular-nums"
+        className="mt-0.5 break-words text-base font-bold tabular-nums sm:truncate sm:text-lg"
         style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
       >
         {format(shown)}
@@ -537,7 +553,7 @@ function AnalogueClock({ minute }: { minute: number }) {
   const mx = 32 + Math.sin(minAngle) * 22;
   const my = 32 - Math.cos(minAngle) * 22;
   return (
-    <svg viewBox="0 0 64 64" className="h-14 w-14 shrink-0" aria-hidden="true">
+    <svg viewBox="0 0 64 64" className="h-10 w-10 shrink-0 sm:h-14 sm:w-14" aria-hidden="true">
       <circle
         cx="32"
         cy="32"
@@ -688,6 +704,90 @@ function Kanban({ cards, reduced }: { cards: CardView[]; reduced: boolean }) {
   );
 }
 
+/** Phone layout: a 2x2 grid of lanes. Cards flow inside their lane; only a card that
+ *  arrives in a lane animates (opacity and transform), no shadows or blur. */
+function KanbanGrid({ cards, reduced }: { cards: CardView[]; reduced: boolean }) {
+  return (
+    <div
+      className="grid grid-cols-2 gap-2 rounded-[16px] p-2"
+      style={{ backgroundColor: "rgba(20, 33, 61, 0.035)" }}
+    >
+      {COLUMNS.map((name, i) => {
+        const lane = cards.filter((x) => x.shown && x.col === i);
+        return (
+          <div
+            key={name}
+            className="min-h-[88px] min-w-0 rounded-[12px] p-1.5"
+            style={{ backgroundColor: "#fff", border: "1px solid var(--sys-border)" }}
+          >
+            <div className="flex items-center justify-between gap-1 px-0.5 pb-1.5">
+              <span
+                className="min-w-0 text-[13px] font-bold leading-tight"
+                style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+              >
+                {name}
+              </span>
+              <span
+                className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full px-1 text-[13px] font-bold tabular-nums text-white"
+                style={{ backgroundColor: COL_COLOURS[i] }}
+              >
+                {lane.length}
+              </span>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              {lane.map((c) => (
+                <div
+                  key={c.def.id}
+                  className="dr-anim relative min-w-0 rounded-[10px] px-2 py-1.5"
+                  style={{
+                    backgroundColor: c.ring ? "rgba(16, 185, 129, 0.18)" : "#F8FAFC",
+                    border: "1px solid var(--sys-border)",
+                    borderLeft: `3px solid ${COL_COLOURS[i]}`,
+                    animation: reduced ? "none" : `dr-rise 420ms ${EASE} both`,
+                  }}
+                >
+                  <div className="flex items-baseline justify-between gap-1">
+                    <p
+                      className="min-w-0 truncate text-[13px] font-bold leading-tight"
+                      style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+                    >
+                      {c.def.name}
+                    </p>
+                    <p
+                      className="shrink-0 text-[13px] font-bold tabular-nums leading-tight"
+                      style={{ color: "var(--sys-navy)" }}
+                    >
+                      {formatMoney(c.def.value)}
+                    </p>
+                  </div>
+                  <p
+                    className="truncate text-[13px] leading-tight"
+                    style={{ color: "var(--sys-muted)" }}
+                  >
+                    {c.def.job}
+                  </p>
+                  {c.badge ? (
+                    <span
+                      className="mt-0.5 inline-block max-w-full truncate rounded-full px-1.5 text-[13px] font-bold leading-[18px]"
+                      style={{
+                        backgroundColor: c.badge.tone === "red" ? RED.bg : AMBER.bg,
+                        color: c.badge.tone === "red" ? RED.text : AMBER.text,
+                        border: `1px solid ${c.badge.tone === "red" ? RED.border : AMBER.border}`,
+                      }}
+                    >
+                      {c.badge.text}
+                    </span>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 function Bubble({ m, reduced }: { m: Message; reduced: boolean }) {
   const mine = m.from === "sys";
   return (
@@ -696,7 +796,7 @@ function Bubble({ m, reduced }: { m: Message; reduced: boolean }) {
       style={{ animation: reduced ? "none" : `dr-rise 420ms ${EASE} both` }}
     >
       <p
-        className="max-w-[88%] break-words rounded-[16px] px-3 py-2 text-xs leading-snug"
+        className="max-w-[88%] break-words rounded-[16px] px-3 py-2 text-[13px] leading-snug sm:text-xs"
         style={
           mine
             ? { backgroundColor: "var(--sys-blue)", color: "#fff", borderBottomRightRadius: 4 }
@@ -712,7 +812,7 @@ function Bubble({ m, reduced }: { m: Message; reduced: boolean }) {
       </p>
       {mine ? (
         <span
-          className="mt-0.5 inline-flex items-center gap-1 text-[10px] font-semibold"
+          className="mt-0.5 hidden items-center gap-1 text-[10px] font-semibold sm:inline-flex"
           style={{ color: "var(--sys-green-text)" }}
         >
           <Check className="h-3 w-3" aria-hidden="true" /> Sent automatically
@@ -754,22 +854,31 @@ function Phone({
             MS
           </span>
           <div className="min-w-0">
-            <p className="truncate text-xs font-bold" style={{ color: "var(--sys-navy)" }}>
+            <p
+              className="truncate text-[13px] font-bold sm:text-xs"
+              style={{ color: "var(--sys-navy)" }}
+            >
               Maria S.
             </p>
-            <p className="truncate text-[10px]" style={{ color: "var(--sys-muted)" }}>
+            <p
+              className="hidden truncate text-[10px] sm:block"
+              style={{ color: "var(--sys-muted)" }}
+            >
               Text messages
             </p>
           </div>
         </div>
-        <div className="relative flex h-[236px] flex-col justify-end gap-2 overflow-hidden px-2.5 py-2.5">
+        <div className="relative flex h-[200px] max-h-[220px] flex-col justify-end sm:h-[236px] sm:max-h-none gap-2 overflow-hidden px-2.5 py-2.5">
           <div
             aria-hidden="true"
             className="pointer-events-none absolute inset-x-0 top-0 z-10 h-8"
             style={{ background: "linear-gradient(to bottom, #EEF2F7, rgba(238,242,247,0))" }}
           />
           {view.messages.length === 0 ? (
-            <p className="text-center text-[11px]" style={{ color: "var(--sys-muted)" }}>
+            <p
+              className="text-center text-[13px] sm:text-[11px]"
+              style={{ color: "var(--sys-muted)" }}
+            >
               No messages yet
             </p>
           ) : null}
@@ -783,7 +892,7 @@ function Phone({
               style={{ animation: reduced ? "none" : `dr-rise 420ms ${EASE} both` }}
             >
               <p
-                className="max-w-[88%] break-words rounded-[16px] px-3 py-2 text-xs leading-snug"
+                className="max-w-[88%] break-words rounded-[16px] px-3 py-2 text-[13px] leading-snug sm:text-xs"
                 style={{
                   backgroundColor: AMBER.bg,
                   color: AMBER.text,
@@ -792,7 +901,10 @@ function Phone({
               >
                 {view.draft.text}
               </p>
-              <span className="mt-0.5 text-[10px] font-bold" style={{ color: AMBER.text }}>
+              <span
+                className="mt-0.5 text-[13px] font-bold sm:text-[10px]"
+                style={{ color: AMBER.text }}
+              >
                 Draft, awaiting your approval
               </span>
             </div>
@@ -821,7 +933,7 @@ function Phone({
           ) : null}
           {mode === "without" && minute >= 482 ? (
             <p
-              className="mx-auto rounded-full px-2.5 py-1 text-[10px] font-bold"
+              className="mx-auto rounded-full px-2.5 py-1 text-[13px] font-bold sm:text-[10px]"
               style={{
                 backgroundColor: RED.bg,
                 color: RED.text,
@@ -849,10 +961,10 @@ function ChipArea({
   reduced: boolean;
 }) {
   return (
-    <div className="mt-3 flex min-h-[84px] flex-wrap content-start gap-1.5">
+    <div className="mt-2 flex min-h-[56px] flex-wrap content-start gap-1.5 sm:mt-3 sm:min-h-[84px]">
       {mode === "without" && minute >= 482 ? (
         <span
-          className="inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold sm:text-xs"
           style={{ backgroundColor: RED.bg, color: RED.text, border: `1px solid ${RED.border}` }}
         >
           <ShieldAlert className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -865,7 +977,7 @@ function ChipArea({
         return (
           <span
             key={c.id}
-            className="dr-anim inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold"
+            className="dr-anim inline-flex max-w-full items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] font-semibold sm:text-xs"
             style={{
               backgroundColor: tone.bg,
               color: tone.text,
@@ -882,7 +994,7 @@ function ChipArea({
   );
 }
 
-const BTN = `sys-crm-motion inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-full px-4 text-sm font-semibold active:scale-[0.98] ${FOCUS}`;
+const BTN = `sys-crm-motion inline-flex min-h-11 items-center justify-center gap-1.5 whitespace-nowrap rounded-full px-3 text-sm sm:gap-2 sm:px-4 font-semibold active:scale-[0.98] ${FOCUS}`;
 const BTN_STYLE = {
   border: "1px solid var(--sys-border)",
   color: "var(--sys-navy)",
@@ -894,6 +1006,7 @@ const BTN_STYLE = {
 // ---------------------------------------------------------------------------
 export function DayRun() {
   const reduced = useReducedMotion();
+  const isPhone = useIsPhone();
   const [mode, setMode] = useState<Mode>("with");
   const [play, setPlay] = useState(0);
   const [wantPlay, setWantPlay] = useState(false);
@@ -931,7 +1044,7 @@ export function DayRun() {
           setWantPlay(true);
         }
       },
-      { threshold: 0.35 },
+      { threshold: 0.2 },
     );
     io.observe(el);
     return () => io.disconnect();
@@ -1048,7 +1161,8 @@ export function DayRun() {
             </span>
           </div>
           <p className="text-sm" style={{ color: "var(--sys-body)" }}>
-            One ordinary day for a trades business. Switch between having the system and not.
+            One ordinary day for a trades business. Switch between a day with Systemations and one
+            without.
           </p>
         </div>
       </div>
@@ -1072,46 +1186,46 @@ export function DayRun() {
                 : { color: "var(--sys-body)" }
             }
           >
-            {m === "with" ? "With the system" : "Without the system"}
+            {m === "with" ? "With Systemations" : "Without Systemations"}
           </button>
         ))}
       </div>
 
       {/* Workspace card */}
       <div
-        className="mt-4 overflow-hidden rounded-[20px]"
-        style={{
-          border: "1px solid var(--sys-border)",
-          boxShadow: "0 18px 40px rgba(20, 33, 61, 0.12)",
-        }}
+        className="mt-4 flex flex-col overflow-hidden rounded-[20px] sm:shadow-[0_18px_40px_rgba(20,33,61,0.12)]"
+        style={{ border: "1px solid var(--sys-border)" }}
       >
         {/* Clock strip */}
         <div
-          className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-white"
+          className="order-1 flex items-center gap-x-3 gap-y-2 px-4 py-2 text-white sm:flex-wrap sm:gap-x-4 sm:py-3"
           style={{ background: "linear-gradient(120deg, var(--sys-navy), #243B6B)" }}
         >
           <AnalogueClock minute={minute} />
           <div className="flex items-baseline gap-1" aria-hidden="true">
             <span
-              className="text-4xl font-bold tabular-nums leading-none sm:text-5xl"
+              className="text-3xl font-bold tabular-nums leading-none sm:text-5xl"
               style={{ fontFamily: HEADING_FONT }}
             >
               {clock.text}
             </span>
             <span className="text-base font-semibold opacity-80">{clock.ampm}</span>
           </div>
-          <div className="min-w-0 flex-1 basis-40">
+          <div className="hidden min-w-0 flex-1 basis-40 sm:block">
             <p className="truncate text-sm font-bold" style={{ fontFamily: HEADING_FONT }}>
               Northside Home Services, one day
             </p>
             <p className="text-xs opacity-80">
-              {mode === "with" ? "With the system" : "Without the system"}
+              {mode === "with" ? "With Systemations" : "Without Systemations"}
             </p>
           </div>
+          <p className="min-w-0 flex-1 truncate text-right text-[13px] font-semibold opacity-90 sm:hidden">
+            {mode === "with" ? "With Systemations" : "Without Systemations"}
+          </p>
         </div>
 
         {/* Progress track */}
-        <div className="bg-white px-4 pb-1 pt-4">
+        <div className="order-3 bg-white px-4 pb-1 pt-4 sm:order-2">
           <div
             aria-hidden="true"
             className="relative mx-[7px] h-1.5 rounded-full"
@@ -1149,7 +1263,7 @@ export function DayRun() {
             })}
           </div>
           <div
-            className="mt-2 flex justify-between text-[11px] font-semibold"
+            className="mt-2 flex justify-between text-[13px] font-semibold sm:text-[11px]"
             style={{ color: "var(--sys-muted)" }}
           >
             <span>8am</span>
@@ -1158,14 +1272,28 @@ export function DayRun() {
         </div>
 
         {/* Controls */}
-        <div className="flex flex-wrap items-center gap-2 bg-white px-4 pb-3">
+        <div className="order-4 flex flex-wrap items-center gap-1.5 bg-white px-4 pb-3 sm:order-3 sm:gap-2">
           {reduced ? (
             <>
-              <button type="button" onClick={() => stepTo(-1)} className={BTN} style={BTN_STYLE}>
-                <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Previous event
+              <button
+                type="button"
+                onClick={() => stepTo(-1)}
+                aria-label="Previous event"
+                className={BTN}
+                style={BTN_STYLE}
+              >
+                <ChevronLeft className="h-4 w-4" aria-hidden="true" /> Previous
+                <span className="hidden sm:inline">&nbsp;event</span>
               </button>
-              <button type="button" onClick={() => stepTo(1)} className={BTN} style={BTN_STYLE}>
-                Next event <ChevronRight className="h-4 w-4" aria-hidden="true" />
+              <button
+                type="button"
+                onClick={() => stepTo(1)}
+                aria-label="Next event"
+                className={BTN}
+                style={BTN_STYLE}
+              >
+                Next<span className="hidden sm:inline">&nbsp;event</span>{" "}
+                <ChevronRight className="h-4 w-4" aria-hidden="true" />
               </button>
             </>
           ) : (
@@ -1199,7 +1327,7 @@ export function DayRun() {
                   type="button"
                   aria-pressed={speed === s}
                   onClick={() => setSpeed(s)}
-                  className={`sys-crm-motion min-h-11 min-w-11 rounded-full px-3 text-sm font-bold ${FOCUS}`}
+                  className={`sys-crm-motion min-h-11 min-w-11 rounded-full px-2.5 text-sm font-bold sm:px-3 ${FOCUS}`}
                   style={
                     speed === s
                       ? { backgroundColor: "var(--sys-navy)", color: "#fff" }
@@ -1211,10 +1339,10 @@ export function DayRun() {
               ))}
             </div>
           ) : null}
-          <div className="flex min-h-11 min-w-0 flex-1 basis-48 items-center gap-2">
+          <div className="flex min-h-11 min-w-0 basis-full items-center gap-2 sm:flex-1 sm:basis-48">
             <label
               htmlFor="dayrun-scrub"
-              className="shrink-0 text-xs font-semibold"
+              className="shrink-0 text-[13px] font-semibold sm:text-xs"
               style={{ color: "var(--sys-muted)" }}
             >
               Time of day
@@ -1240,21 +1368,25 @@ export function DayRun() {
         {/* Visual stage */}
         <div
           aria-hidden="true"
-          className="grid min-w-0 gap-5 px-4 pb-5 pt-2 lg:grid-cols-[1.4fr_1fr]"
+          className="order-5 grid min-w-0 gap-3 px-4 pb-4 pt-2 sm:order-4 sm:gap-5 sm:pb-5 lg:grid-cols-[1.4fr_1fr]"
           style={{ backgroundColor: "#fff" }}
         >
           <div className="min-w-0">
             <p
-              className="mb-2 text-xs font-bold uppercase tracking-wide"
+              className="mb-2 text-[13px] font-bold uppercase tracking-wide sm:text-xs"
               style={{ color: "var(--sys-muted)" }}
             >
               The pipeline
             </p>
-            <Kanban cards={view.cards} reduced={reduced} />
+            {isPhone ? (
+              <KanbanGrid cards={view.cards} reduced={reduced} />
+            ) : (
+              <Kanban cards={view.cards} reduced={reduced} />
+            )}
           </div>
           <div className="min-w-0">
             <p
-              className="mb-2 text-xs font-bold uppercase tracking-wide"
+              className="mb-2 text-[13px] font-bold uppercase tracking-wide sm:text-xs"
               style={{ color: "var(--sys-muted)" }}
             >
               What the customer sees
@@ -1266,14 +1398,14 @@ export function DayRun() {
 
         {/* Live caption */}
         <div
-          className="px-4 py-3"
+          className="order-2 px-4 py-2 sm:order-5 sm:py-3"
           style={{
             backgroundColor: mode === "with" ? "rgba(16, 185, 129, 0.08)" : AMBER.bg,
             borderTop: "1px solid var(--sys-border)",
           }}
         >
           <p
-            className="text-xs font-bold uppercase tracking-wide"
+            className="text-[13px] font-bold uppercase tracking-wide sm:text-xs"
             style={{ color: "var(--sys-muted)" }}
           >
             Now
@@ -1289,7 +1421,7 @@ export function DayRun() {
         </div>
 
         {/* Result strip */}
-        <div className="grid grid-cols-2 gap-2 bg-white px-4 py-4 lg:grid-cols-4">
+        <div className="order-6 grid grid-cols-2 gap-2 bg-white px-4 py-3 sm:py-4 lg:grid-cols-4">
           <Tile
             label="Replies sent"
             value={view.replies}

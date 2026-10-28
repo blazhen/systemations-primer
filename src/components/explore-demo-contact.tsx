@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { Card, IconTile } from "./explore-ui";
 import { useBusinessBrief } from "./explore-business-brief";
+import { useMinWidth } from "./explore-xero-shared";
 import {
   businessName,
   EXAMPLE_LABEL,
@@ -205,7 +206,7 @@ function Avatar({ contact, size = 56 }: { contact: Contact; size?: number }) {
         fontSize: size * 0.36,
         fontFamily: HEADING_FONT,
         background: gradientFor(contact.id),
-        boxShadow: "0 6px 16px rgba(20, 33, 61, 0.16), inset 0 0 0 2px rgba(255,255,255,0.35)",
+        boxShadow: "0 3px 8px rgba(20, 33, 61, 0.14), inset 0 0 0 2px rgba(255,255,255,0.35)",
       }}
     >
       {initials(contact.name)}
@@ -303,7 +304,7 @@ function EventItem({
     >
       <div className="min-h-0 overflow-hidden">
         <div
-          className="mt-2 rounded-[12px] px-3.5 py-3 text-left text-[13px] leading-relaxed"
+          className="mt-2 rounded-[12px] px-3 py-2.5 text-left text-[13px] leading-relaxed sm:px-3.5 sm:py-3"
           style={{
             backgroundColor: "rgba(124, 92, 252, 0.06)",
             border: "1px solid rgba(124, 92, 252, 0.2)",
@@ -311,7 +312,7 @@ function EventItem({
           }}
         >
           <h4
-            className="text-xs font-bold uppercase tracking-wider"
+            className="text-[13px] font-bold uppercase tracking-wider sm:text-xs"
             style={{ color: "var(--sys-violet)" }}
           >
             Why this happened
@@ -347,7 +348,7 @@ function EventItem({
 
   const meta = (
     <span
-      className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold"
+      className="flex min-w-0 items-center gap-1.5 text-[13px] font-semibold sm:text-[11px]"
       style={{ color: "var(--sys-muted)" }}
     >
       <Icon className="h-3.5 w-3.5 shrink-0" strokeWidth={2} />
@@ -367,7 +368,10 @@ function EventItem({
           className={`${MOTION} ${FOCUS_RING} ${flash ? "sys-flash" : ""} flex min-h-11 w-full max-w-[420px] flex-col items-center justify-center gap-0.5 rounded-[12px] px-3 py-1.5 text-center hover:bg-slate-50`}
         >
           {meta}
-          <span className="break-words text-xs leading-snug" style={{ color: "var(--sys-body)" }}>
+          <span
+            className="break-words text-[13px] leading-snug sm:text-xs"
+            style={{ color: "var(--sys-body)" }}
+          >
             {event.text}
           </span>
         </button>
@@ -385,7 +389,7 @@ function EventItem({
         onClick={onToggle}
         aria-expanded={open}
         aria-controls={panelId}
-        className={`${MOTION} ${FOCUS_RING} ${flash ? "sys-flash" : ""} group min-h-11 max-w-[88%] min-w-0 px-3.5 py-2.5 text-left hover:-translate-y-px ${
+        className={`${MOTION} ${FOCUS_RING} ${flash ? "sys-flash" : ""} group min-h-11 max-w-[92%] min-w-0 px-3 py-2 text-left sm:max-w-[88%] sm:px-3.5 sm:py-2.5 sm:hover:-translate-y-px ${
           isOut ? "rounded-[16px] rounded-br-[4px]" : "rounded-[16px] rounded-bl-[4px]"
         }`}
         style={{
@@ -410,11 +414,14 @@ function EventItem({
         >
           {event.text}
         </span>
-        <span className="mt-1 block text-[11px]" style={{ color: "var(--sys-muted)" }}>
+        <span
+          className="mt-0.5 block text-[13px] sm:mt-1 sm:text-[11px]"
+          style={{ color: "var(--sys-muted)" }}
+        >
           {isOut ? "Sent by us" : "From the customer"}
         </span>
       </button>
-      <div className="w-full max-w-[88%]">{panel}</div>
+      <div className="w-full max-w-[92%] sm:max-w-[88%]">{panel}</div>
     </li>
   );
 }
@@ -431,6 +438,21 @@ export function ContactDemo() {
   const stuck = isStuck(selected);
   const canChase = stuck || selected.stage === "quote" || selected.stage === "following";
   const awaiting = selected.draft?.status === "awaiting";
+  const openTasks = selected.tasks.filter((t) => !t.done).length;
+
+  // Phones show one panel at a time; from lg all three columns show. Before
+  // mount (wide is null) every panel renders and CSS hides the inactive ones.
+  const [tab, setTab] = useState<"timeline" | "details" | "tasks">("timeline");
+  const wide = useMinWidth(1024);
+  const showPanel = (p: "timeline" | "details" | "tasks") => wide !== false || tab === p;
+  const hidePanel = (p: "timeline" | "details" | "tasks") =>
+    wide === null && tab !== p ? "max-lg:hidden" : "";
+  // Collapsible sections (phones only). The draft opens when one is awaiting.
+  const [draftOpen, setDraftOpen] = useState(false);
+  const [leadOpen, setLeadOpen] = useState(false);
+  useEffect(() => {
+    setDraftOpen(awaiting);
+  }, [selected.id, awaiting]);
   const firstOpen = selected.tasks.find((t) => !t.done);
 
   // Timeline: which event is open, and keep the newest in view.
@@ -546,6 +568,55 @@ export function ContactDemo() {
   })).filter((f): f is { id: string; label: string; contact: Contact } => Boolean(f.contact));
   const leads = contacts.filter((c) => c.id.startsWith("lead-"));
 
+  const stageRow = (cls: string) => (
+    <div className={`mt-3 flex-wrap items-center gap-2 ${cls}`}>
+      <Enter
+        key={selected.stage}
+        animate={hydrated}
+        from="motion-safe:-translate-y-1.5 motion-safe:opacity-0"
+        className="inline-flex max-w-full"
+      >
+        <span
+          className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
+          style={{
+            backgroundColor: "rgba(30, 136, 229, 0.1)",
+            border: "1px solid rgba(30, 136, 229, 0.25)",
+            color: "var(--sys-blue-dark)",
+          }}
+        >
+          <span
+            className="h-1.5 w-1.5 rounded-full"
+            style={{ backgroundColor: "var(--sys-blue)" }}
+          />
+          <span className="sr-only">Current stage: </span>
+          {stage}
+        </span>
+      </Enter>
+      <span aria-live="polite" className="min-w-0">
+        {moved ? (
+          <Enter
+            key={moved.key}
+            animate
+            from="motion-safe:translate-x-1.5 motion-safe:opacity-0"
+            className="inline-flex max-w-full"
+          >
+            <span
+              className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+              style={{
+                backgroundColor: "rgba(16, 185, 129, 0.1)",
+                border: "1px solid rgba(16, 185, 129, 0.25)",
+                color: "var(--sys-green-text)",
+              }}
+            >
+              <Check className="h-3 w-3 shrink-0" strokeWidth={2.6} />
+              <span className="break-words">{moved.text}</span>
+            </span>
+          </Enter>
+        ) : null}
+      </span>
+    </div>
+  );
+
   const nameErrId = `${uid}-name-err`;
   const msgErrId = `${uid}-msg-err`;
   const helpId = `${uid}-help`;
@@ -580,7 +651,11 @@ export function ContactDemo() {
           lands on one record. Tap any timeline entry to see why it happened.
         </p>
 
-        <div role="group" aria-label="Sample contacts" className="mt-4 grid gap-3 md:grid-cols-3">
+        <div
+          role="group"
+          aria-label="Sample contacts"
+          className="-mx-4 mt-4 flex snap-x snap-mandatory gap-2 overflow-x-auto px-4 pb-1 sm:-mx-6 sm:px-6 md:mx-0 md:grid md:grid-cols-3 md:gap-3 md:overflow-visible md:px-0 md:pb-0"
+        >
           {featured.map(({ id, label, contact }) => {
             const active = contact.id === selected.id;
             return (
@@ -589,7 +664,7 @@ export function ContactDemo() {
                 type="button"
                 aria-pressed={active}
                 onClick={() => select(contact.id)}
-                className={`${MOTION} ${FOCUS_RING} flex min-h-11 min-w-0 items-start gap-3 rounded-[16px] bg-white p-3.5 text-left hover:-translate-y-0.5`}
+                className={`${MOTION} ${FOCUS_RING} flex min-h-11 w-[31%] min-w-[112px] shrink-0 snap-start flex-col items-center gap-1.5 rounded-[16px] bg-white p-2.5 text-center max-md:shadow-none! md:w-auto md:min-w-0 md:flex-row md:items-start md:gap-3 md:p-3.5 md:text-left md:hover:-translate-y-0.5`}
                 style={{
                   border: `1px solid ${active ? "var(--sys-blue)" : "var(--sys-border)"}`,
                   boxShadow: active
@@ -599,16 +674,16 @@ export function ContactDemo() {
                 }}
               >
                 <Avatar contact={contact} size={40} />
-                <span className="min-w-0">
-                  <span className="flex flex-wrap items-center gap-x-2 gap-y-0.5">
+                <span className="min-w-0 max-w-full">
+                  <span className="flex flex-col items-center gap-x-2 gap-y-0.5 md:flex-row md:flex-wrap">
                     <span
-                      className="break-words text-sm font-bold"
+                      className="max-w-full truncate text-sm font-bold md:overflow-visible md:whitespace-normal md:break-words"
                       style={{ color: "var(--sys-navy)" }}
                     >
                       {contact.name}
                     </span>
                     <span
-                      className="rounded-full px-2 py-0.5 text-[11px] font-semibold"
+                      className="rounded-full px-2 py-0.5 text-[13px] font-semibold md:text-[11px]"
                       style={{
                         backgroundColor: active ? "var(--sys-blue)" : "#EEF2F7",
                         color: active ? "#fff" : "var(--sys-body)",
@@ -618,7 +693,7 @@ export function ContactDemo() {
                     </span>
                   </span>
                   <span
-                    className="mt-1 block break-words text-xs leading-snug"
+                    className="mt-1 hidden break-words text-xs leading-snug md:block"
                     style={{ color: "var(--sys-muted)" }}
                   >
                     {contact.summary}
@@ -633,9 +708,12 @@ export function ContactDemo() {
           <div
             role="group"
             aria-label="Leads you added"
-            className="mt-3 flex flex-wrap items-center gap-2"
+            className="-mx-4 mt-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
           >
-            <span className="text-xs font-semibold" style={{ color: "var(--sys-muted)" }}>
+            <span
+              className="shrink-0 text-[13px] font-semibold sm:text-xs"
+              style={{ color: "var(--sys-muted)" }}
+            >
               Added by you
             </span>
             {leads.map((l) => {
@@ -646,7 +724,7 @@ export function ContactDemo() {
                   type="button"
                   aria-pressed={active}
                   onClick={() => select(l.id)}
-                  className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 max-w-full items-center gap-2 rounded-full bg-white py-1 pl-1.5 pr-4 text-sm font-semibold hover:-translate-y-px ${l.id === newLead?.id ? "sys-pop" : ""}`}
+                  className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 max-w-full shrink-0 items-center gap-2 rounded-full bg-white py-1 pl-1.5 pr-4 text-sm font-semibold hover:-translate-y-px ${l.id === newLead?.id ? "sys-pop" : ""}`}
                   style={{
                     border: `1px solid ${active ? "var(--sys-blue)" : "var(--sys-border)"}`,
                     color: "var(--sys-navy)",
@@ -670,301 +748,357 @@ export function ContactDemo() {
         duration="motion-safe:duration-[180ms]"
         className="space-y-6"
       >
-        <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)_280px]">
-          {/* 1. Summary */}
-          <Card className="min-w-0 !p-5 lg:row-span-2">
-            <section aria-labelledby={`${uid}-details`}>
-              <PanelTitle id={`${uid}-details`}>Details and tags</PanelTitle>
-              <div className="mt-4 flex items-center gap-3">
-                <Avatar contact={selected} />
-                <div className="min-w-0">
-                  <h4
-                    className="break-words text-lg font-bold leading-tight"
-                    style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
-                  >
-                    {selected.name}
-                  </h4>
-                  {selected.company ? (
-                    <p className="break-words text-sm" style={{ color: "var(--sys-body)" }}>
-                      {selected.company}
-                    </p>
-                  ) : null}
-                </div>
-              </div>
-
-              <div className="mt-3 flex flex-wrap items-center gap-2">
-                <Enter
-                  key={selected.stage}
-                  animate={hydrated}
-                  from="motion-safe:-translate-y-1.5 motion-safe:opacity-0"
-                  className="inline-flex max-w-full"
+        {/* Phones: compact summary, pinned next action and panel switch */}
+        <div className="space-y-3 lg:hidden">
+          <div
+            className="rounded-[16px] bg-white p-3"
+            style={{ border: "1px solid var(--sys-border)" }}
+          >
+            <div className="flex items-center gap-3">
+              <Avatar contact={selected} size={44} />
+              <div className="min-w-0 flex-1">
+                <p
+                  className="truncate text-base font-bold leading-tight"
+                  style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
                 >
-                  <span
-                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold"
-                    style={{
-                      backgroundColor: "rgba(30, 136, 229, 0.1)",
-                      border: "1px solid rgba(30, 136, 229, 0.25)",
-                      color: "var(--sys-blue-dark)",
-                    }}
-                  >
-                    <span
-                      className="h-1.5 w-1.5 rounded-full"
-                      style={{ backgroundColor: "var(--sys-blue)" }}
-                    />
-                    <span className="sr-only">Current stage: </span>
-                    {stage}
-                  </span>
-                </Enter>
-                <span aria-live="polite" className="min-w-0">
-                  {moved ? (
-                    <Enter
-                      key={moved.key}
-                      animate
-                      from="motion-safe:translate-x-1.5 motion-safe:opacity-0"
-                      className="inline-flex max-w-full"
-                    >
-                      <span
-                        className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                        style={{
-                          backgroundColor: "rgba(16, 185, 129, 0.1)",
-                          border: "1px solid rgba(16, 185, 129, 0.25)",
-                          color: "var(--sys-green-text)",
-                        }}
-                      >
-                        <Check className="h-3 w-3 shrink-0" strokeWidth={2.6} />
-                        <span className="break-words">{moved.text}</span>
-                      </span>
-                    </Enter>
-                  ) : null}
-                </span>
+                  {selected.name}
+                </p>
+                <p className="truncate text-[13px]" style={{ color: "var(--sys-body)" }}>
+                  {selected.job}
+                </p>
               </div>
-
-              <dl className="mt-3 divide-y" style={{ borderColor: "var(--sys-border)" }}>
-                <DetailRow icon={Phone} label="Phone" value={selected.phone} />
-                <DetailRow icon={Mail} label="Email" value={selected.email} />
-                <DetailRow icon={MapPin} label="Suburb" value={selected.suburb} />
-                <DetailRow icon={Building2} label="Source" value={selected.source} />
-                <DetailRow icon={User} label="Owner" value={selected.owner} />
-              </dl>
-
-              <h4
-                className="mt-4 text-xs font-bold uppercase tracking-wider"
-                style={{ color: "var(--sys-muted)" }}
-              >
-                Tags
-              </h4>
-              <ul className="mt-2 flex flex-wrap gap-1.5">
-                {selected.tags.map((t) => (
-                  <li
-                    key={t}
-                    className="max-w-full break-words rounded-full px-2.5 py-1 text-xs font-semibold"
-                    style={{
-                      backgroundColor: "rgba(20, 167, 154, 0.09)",
-                      border: "1px solid rgba(20, 167, 154, 0.22)",
-                      color: "var(--sys-teal)",
-                    }}
-                  >
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          </Card>
-
-          {/* 2. Job, value and next action (right column on wide screens) */}
-          <Card className="min-w-0 !p-5 lg:col-start-3 lg:row-start-1">
-            <section aria-labelledby={`${uid}-job`}>
-              <PanelTitle id={`${uid}-job`}>Job and value</PanelTitle>
               <p
-                className="mt-3 break-words text-sm font-semibold"
-                style={{ color: "var(--sys-navy)" }}
-              >
-                {selected.job}
-              </p>
-              <p
-                className="mt-1 text-3xl font-bold tracking-[-0.02em]"
+                className="shrink-0 text-lg font-bold tabular-nums"
                 style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
               >
                 {formatMoney(selected.value)}
               </p>
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span
-                  className="inline-flex items-center gap-1.5 text-xs font-medium"
-                  style={{ color: "var(--sys-muted)" }}
-                >
-                  <Clock className="h-3.5 w-3.5" strokeWidth={2} />
-                  {selected.daysInStage === 0
-                    ? "Entered this stage today"
-                    : `${selected.daysInStage} ${selected.daysInStage === 1 ? "day" : "days"} in ${stage}`}
-                </span>
-                {stuck ? (
-                  <AmberChip>
-                    <TriangleAlert className="h-3 w-3" strokeWidth={2.2} />
-                    Stuck
-                  </AmberChip>
-                ) : null}
-              </div>
-
-              <div
-                className="mt-4 rounded-[14px] p-3.5"
+            </div>
+            {stageRow("flex")}
+          </div>
+          <div
+            className="rounded-[14px] px-3.5 py-2.5"
+            style={{
+              background: "linear-gradient(135deg, rgba(30,136,229,0.08), rgba(124,92,252,0.08))",
+              border: "1px solid rgba(30, 136, 229, 0.2)",
+            }}
+          >
+            <p className="text-[13px] font-bold" style={{ color: "var(--sys-blue-dark)" }}>
+              Next action
+            </p>
+            <p
+              className="break-words text-sm font-semibold leading-snug"
+              style={{ color: "var(--sys-navy)" }}
+            >
+              {firstOpen
+                ? `${firstOpen.title}, ${firstOpen.due.toLowerCase()}`
+                : "Nothing waiting on you"}
+            </p>
+          </div>
+          <div
+            role="group"
+            aria-label="Record sections"
+            className="grid grid-cols-3 gap-1 rounded-full p-1"
+            style={{ backgroundColor: "#EEF2F7" }}
+          >
+            {(
+              [
+                ["timeline", "Timeline"],
+                ["details", "Details"],
+                ["tasks", openTasks > 0 ? `Tasks (${openTasks})` : "Tasks"],
+              ] as const
+            ).map(([key, label]) => (
+              <button
+                key={key}
+                type="button"
+                aria-pressed={tab === key}
+                onClick={() => setTab(key)}
+                className={`${MOTION} ${FOCUS_RING} min-h-11 rounded-full px-2 text-sm font-semibold`}
                 style={{
-                  background:
-                    "linear-gradient(135deg, rgba(30,136,229,0.08), rgba(124,92,252,0.08))",
-                  border: "1px solid rgba(30, 136, 229, 0.2)",
+                  backgroundColor: tab === key ? "#fff" : "transparent",
+                  color: tab === key ? "var(--sys-navy)" : "var(--sys-body)",
+                  boxShadow: tab === key ? "0 1px 3px rgba(20, 33, 61, 0.12)" : "none",
                 }}
               >
+                {label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-5 lg:grid-cols-[260px_minmax(0,1fr)_280px]">
+          {/* 1. Summary */}
+          {showPanel("details") ? (
+            <Card className={`min-w-0 !p-4 sm:!p-5 lg:row-span-2 ${hidePanel("details")}`}>
+              <section aria-labelledby={`${uid}-details`}>
+                <PanelTitle id={`${uid}-details`}>Details and tags</PanelTitle>
+                <div className="mt-4 flex items-center gap-3 max-lg:hidden">
+                  <Avatar contact={selected} />
+                  <div className="min-w-0">
+                    <h4
+                      className="break-words text-lg font-bold leading-tight"
+                      style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+                    >
+                      {selected.name}
+                    </h4>
+                    {selected.company ? (
+                      <p className="break-words text-sm" style={{ color: "var(--sys-body)" }}>
+                        {selected.company}
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
+
+                {stageRow("hidden lg:flex")}
+
+                <dl className="mt-3 divide-y" style={{ borderColor: "var(--sys-border)" }}>
+                  <DetailRow icon={Phone} label="Phone" value={selected.phone} />
+                  <DetailRow icon={Mail} label="Email" value={selected.email} />
+                  <DetailRow icon={MapPin} label="Suburb" value={selected.suburb} />
+                  <DetailRow icon={Building2} label="Source" value={selected.source} />
+                  <DetailRow icon={User} label="Owner" value={selected.owner} />
+                </dl>
+
                 <h4
-                  className="text-xs font-bold uppercase tracking-wider"
-                  style={{ color: "var(--sys-blue-dark)" }}
+                  className="mt-4 text-xs font-bold uppercase tracking-wider"
+                  style={{ color: "var(--sys-muted)" }}
                 >
-                  Next action
+                  Tags
                 </h4>
+                <ul className="mt-2 flex flex-wrap gap-1.5">
+                  {selected.tags.map((t) => (
+                    <li
+                      key={t}
+                      className="max-w-full break-words rounded-full px-2.5 py-1 text-xs font-semibold"
+                      style={{
+                        backgroundColor: "rgba(20, 167, 154, 0.09)",
+                        border: "1px solid rgba(20, 167, 154, 0.22)",
+                        color: "var(--sys-teal)",
+                      }}
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            </Card>
+          ) : null}
+
+          {/* 2. Job, value and next action (right column on wide screens) */}
+          {showPanel("details") ? (
+            <Card
+              className={`min-w-0 !p-4 sm:!p-5 lg:col-start-3 lg:row-start-1 ${hidePanel("details")}`}
+            >
+              <section aria-labelledby={`${uid}-job`}>
+                <PanelTitle id={`${uid}-job`}>Job and value</PanelTitle>
                 <p
-                  className="mt-1 break-words text-sm font-semibold leading-snug"
+                  className="mt-3 break-words text-sm font-semibold"
                   style={{ color: "var(--sys-navy)" }}
                 >
-                  {firstOpen
-                    ? `${firstOpen.title}, ${firstOpen.due.toLowerCase()}`
-                    : "Nothing waiting on you"}
+                  {selected.job}
                 </p>
-              </div>
+                <p
+                  className="mt-1 text-3xl font-bold tracking-[-0.02em]"
+                  style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+                >
+                  {formatMoney(selected.value)}
+                </p>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span
+                    className="inline-flex items-center gap-1.5 text-xs font-medium"
+                    style={{ color: "var(--sys-muted)" }}
+                  >
+                    <Clock className="h-3.5 w-3.5" strokeWidth={2} />
+                    {selected.daysInStage === 0
+                      ? "Entered this stage today"
+                      : `${selected.daysInStage} ${selected.daysInStage === 1 ? "day" : "days"} in ${stage}`}
+                  </span>
+                  {stuck ? (
+                    <AmberChip>
+                      <TriangleAlert className="h-3 w-3" strokeWidth={2.2} />
+                      Stuck
+                    </AmberChip>
+                  ) : null}
+                </div>
 
-              {canChase ? (
-                <button
-                  type="button"
-                  onClick={() => chase(selected.id)}
-                  disabled={awaiting}
-                  className={`${MOTION} ${FOCUS_RING} mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0`}
+                <div
+                  className="mt-4 rounded-[14px] p-3.5 max-lg:hidden"
                   style={{
-                    background: "linear-gradient(to right, #1E6FB8, #174A78)",
-                    boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
+                    background:
+                      "linear-gradient(135deg, rgba(30,136,229,0.08), rgba(124,92,252,0.08))",
+                    border: "1px solid rgba(30, 136, 229, 0.2)",
                   }}
                 >
-                  <Send className="h-4 w-4" strokeWidth={2} />
-                  {awaiting ? "Draft waiting for approval" : `Chase ${firstName(selected.name)}`}
-                </button>
-              ) : null}
-            </section>
-          </Card>
+                  <h4
+                    className="text-xs font-bold uppercase tracking-wider"
+                    style={{ color: "var(--sys-blue-dark)" }}
+                  >
+                    Next action
+                  </h4>
+                  <p
+                    className="mt-1 break-words text-sm font-semibold leading-snug"
+                    style={{ color: "var(--sys-navy)" }}
+                  >
+                    {firstOpen
+                      ? `${firstOpen.title}, ${firstOpen.due.toLowerCase()}`
+                      : "Nothing waiting on you"}
+                  </p>
+                </div>
+
+                {canChase ? (
+                  <button
+                    type="button"
+                    onClick={() => chase(selected.id)}
+                    disabled={awaiting}
+                    className={`${MOTION} ${FOCUS_RING} mt-3 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0`}
+                    style={{
+                      background: "linear-gradient(to right, #1E6FB8, #174A78)",
+                      boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
+                    }}
+                  >
+                    <Send className="h-4 w-4" strokeWidth={2} />
+                    {awaiting ? "Draft waiting for approval" : `Chase ${firstName(selected.name)}`}
+                  </button>
+                ) : null}
+              </section>
+            </Card>
+          ) : null}
 
           {/* 3. Timeline */}
-          <Card className="min-w-0 !p-5 lg:col-start-2 lg:row-span-2 lg:row-start-1">
-            <section aria-labelledby={`${uid}-timeline`}>
-              <div className="flex items-center justify-between gap-3">
-                <PanelTitle id={`${uid}-timeline`}>Timeline</PanelTitle>
-                <span className="text-xs" style={{ color: "var(--sys-muted)" }}>
-                  {count} {count === 1 ? "event" : "events"}
-                </span>
-              </div>
-              <p className="mt-1 text-xs" style={{ color: "var(--sys-muted)" }}>
-                Oldest first. Select an entry to see why it happened.
-              </p>
-              <div
-                ref={scrollRef}
-                className="mt-4 max-h-[460px] overflow-y-auto rounded-[14px] pr-1"
-                tabIndex={-1}
-              >
-                <ol className="space-y-3 pb-1">
-                  {selected.timeline.map((ev) => (
-                    <EventItem
-                      key={ev.id}
-                      event={ev}
-                      fresh={fresh.includes(ev.id)}
-                      flash={ev.id === newestFresh}
-                      open={openId === ev.id}
-                      onToggle={() =>
-                        setOpenEvent(
-                          openId === ev.id ? null : { contactId: selected.id, eventId: ev.id },
-                        )
-                      }
-                    />
-                  ))}
-                </ol>
-              </div>
-              <p role="status" aria-live="polite" className="sr-only">
-                {updatedNote}
-              </p>
-            </section>
-          </Card>
+          {showPanel("timeline") ? (
+            <Card
+              className={`min-w-0 !p-4 sm:!p-5 lg:col-start-2 lg:row-span-2 lg:row-start-1 ${hidePanel("timeline")}`}
+            >
+              <section aria-labelledby={`${uid}-timeline`}>
+                <div className="flex items-center justify-between gap-3">
+                  <PanelTitle id={`${uid}-timeline`}>Timeline</PanelTitle>
+                  <span className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                    {count} {count === 1 ? "event" : "events"}
+                  </span>
+                </div>
+                <p className="mt-1 text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
+                  Oldest first. Select an entry to see why it happened.
+                </p>
+                <div
+                  ref={scrollRef}
+                  className="mt-3 max-h-[60vh] overflow-y-auto overscroll-contain rounded-[14px] pr-1 sm:mt-4 lg:max-h-[460px]"
+                  tabIndex={-1}
+                >
+                  <ol className="space-y-2 pb-1 sm:space-y-3">
+                    {selected.timeline.map((ev) => (
+                      <EventItem
+                        key={ev.id}
+                        event={ev}
+                        fresh={fresh.includes(ev.id)}
+                        flash={ev.id === newestFresh}
+                        open={openId === ev.id}
+                        onToggle={() =>
+                          setOpenEvent(
+                            openId === ev.id ? null : { contactId: selected.id, eventId: ev.id },
+                          )
+                        }
+                      />
+                    ))}
+                  </ol>
+                </div>
+                <p role="status" aria-live="polite" className="sr-only">
+                  {updatedNote}
+                </p>
+              </section>
+            </Card>
+          ) : null}
 
           {/* 4. Tasks */}
-          <Card className="min-w-0 !p-5 lg:col-start-3 lg:row-start-2">
-            <section aria-labelledby={`${uid}-tasks`}>
-              <PanelTitle id={`${uid}-tasks`}>Tasks</PanelTitle>
-              {selected.tasks.length === 0 ? (
-                <p className="mt-3 text-sm" style={{ color: "var(--sys-muted)" }}>
-                  No tasks on this record.
-                </p>
-              ) : (
-                <ul className="mt-3 space-y-2">
-                  {selected.tasks.map((t) => {
-                    const inputId = `${uid}-task-${t.id}`;
-                    const hintId = `${inputId}-hint`;
-                    return (
-                      <li key={t.id}>
-                        <label
-                          htmlFor={inputId}
-                          className={`${MOTION} flex min-h-11 cursor-pointer items-start gap-3 rounded-[12px] p-2.5 hover:bg-slate-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-300/50`}
-                          style={{ border: "1px solid var(--sys-border)" }}
-                        >
-                          <span className="relative mt-0.5 h-5 w-5 shrink-0">
-                            <input
-                              id={inputId}
-                              type="checkbox"
-                              checked={t.done}
-                              onChange={() => toggleTask(selected.id, t.id)}
-                              aria-describedby={t.movesTo && !t.done ? hintId : undefined}
-                              className="peer absolute inset-0 m-0 h-5 w-5 cursor-pointer appearance-none rounded-[6px] bg-white focus:outline-none"
-                              style={{ border: "2px solid var(--sys-border)" }}
-                            />
-                            <span
-                              aria-hidden="true"
-                              className="sys-crm-motion pointer-events-none absolute inset-0 scale-0 rounded-[6px] opacity-0 motion-safe:transition-[transform,opacity] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)] peer-checked:scale-100 peer-checked:opacity-100"
-                              style={{ backgroundColor: "var(--sys-blue)" }}
-                            />
-                            <Check
-                              aria-hidden="true"
-                              className="sys-crm-motion pointer-events-none absolute inset-0.5 h-4 w-4 scale-50 text-white opacity-0 motion-safe:transition-[transform,opacity] motion-safe:delay-75 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)] peer-checked:scale-100 peer-checked:opacity-100"
-                              strokeWidth={3}
-                            />
-                          </span>
-                          <span className="min-w-0">
-                            <span
-                              className={`sys-crm-motion relative block max-w-full break-words text-sm font-semibold after:absolute after:left-0 after:top-1/2 after:h-px after:w-full after:origin-left after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-300 ${
-                                t.done ? "after:scale-x-100" : "after:scale-x-0"
-                              }`}
-                              style={{ color: t.done ? "var(--sys-muted)" : "var(--sys-navy)" }}
-                            >
-                              {t.title}
-                            </span>
-                            <span className="block text-xs" style={{ color: "var(--sys-muted)" }}>
-                              {t.done ? "Done" : `Due: ${t.due}`}
-                            </span>
-                            {t.movesTo && !t.done ? (
+          {showPanel("tasks") ? (
+            <Card
+              className={`min-w-0 !p-4 sm:!p-5 lg:col-start-3 lg:row-start-2 ${hidePanel("tasks")}`}
+            >
+              <section aria-labelledby={`${uid}-tasks`}>
+                <PanelTitle id={`${uid}-tasks`}>Tasks</PanelTitle>
+                {selected.tasks.length === 0 ? (
+                  <p className="mt-3 text-sm" style={{ color: "var(--sys-muted)" }}>
+                    No tasks on this record.
+                  </p>
+                ) : (
+                  <ul className="mt-3 space-y-2">
+                    {selected.tasks.map((t) => {
+                      const inputId = `${uid}-task-${t.id}`;
+                      const hintId = `${inputId}-hint`;
+                      return (
+                        <li key={t.id}>
+                          <label
+                            htmlFor={inputId}
+                            className={`${MOTION} flex min-h-11 cursor-pointer items-start gap-3 rounded-[12px] p-2.5 hover:bg-slate-50 has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-300/50`}
+                            style={{ border: "1px solid var(--sys-border)" }}
+                          >
+                            <span className="relative mt-0.5 h-5 w-5 shrink-0">
+                              <input
+                                id={inputId}
+                                type="checkbox"
+                                checked={t.done}
+                                onChange={() => toggleTask(selected.id, t.id)}
+                                aria-describedby={t.movesTo && !t.done ? hintId : undefined}
+                                className="peer absolute inset-0 m-0 h-5 w-5 cursor-pointer appearance-none rounded-[6px] bg-white focus:outline-none"
+                                style={{ border: "2px solid var(--sys-border)" }}
+                              />
                               <span
-                                id={hintId}
-                                className="mt-0.5 block break-words text-xs"
-                                style={{ color: "var(--sys-blue-dark)" }}
+                                aria-hidden="true"
+                                className="sys-crm-motion pointer-events-none absolute inset-0 scale-0 rounded-[6px] opacity-0 motion-safe:transition-[transform,opacity] motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)] peer-checked:scale-100 peer-checked:opacity-100"
+                                style={{ backgroundColor: "var(--sys-blue)" }}
+                              />
+                              <Check
+                                aria-hidden="true"
+                                className="sys-crm-motion pointer-events-none absolute inset-0.5 h-4 w-4 scale-50 text-white opacity-0 motion-safe:transition-[transform,opacity] motion-safe:delay-75 motion-safe:duration-200 motion-safe:ease-[cubic-bezier(0.34,1.56,0.64,1)] peer-checked:scale-100 peer-checked:opacity-100"
+                                strokeWidth={3}
+                              />
+                            </span>
+                            <span className="min-w-0">
+                              <span
+                                className={`sys-crm-motion relative block max-w-full break-words text-sm font-semibold after:absolute after:left-0 after:top-1/2 after:h-px after:w-full after:origin-left after:bg-current motion-safe:after:transition-transform motion-safe:after:duration-300 ${
+                                  t.done ? "after:scale-x-100" : "after:scale-x-0"
+                                }`}
+                                style={{ color: t.done ? "var(--sys-muted)" : "var(--sys-navy)" }}
                               >
-                                Ticking this moves the card to {stageLabel(t.movesTo, brief)}
+                                {t.title}
                               </span>
-                            ) : null}
-                          </span>
-                        </label>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </section>
-          </Card>
+                              <span
+                                className="block text-[13px] sm:text-xs"
+                                style={{ color: "var(--sys-muted)" }}
+                              >
+                                {t.done ? "Done" : `Due: ${t.due}`}
+                              </span>
+                              {t.movesTo && !t.done ? (
+                                <span
+                                  id={hintId}
+                                  className="mt-0.5 block break-words text-xs"
+                                  style={{ color: "var(--sys-blue-dark)" }}
+                                >
+                                  Ticking this moves the card to {stageLabel(t.movesTo, brief)}
+                                </span>
+                              ) : null}
+                            </span>
+                          </label>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </section>
+            </Card>
+          ) : null}
         </div>
 
         {/* Draft */}
         {selected.draft ? (
-          <Card className="!p-5">
+          <Card className="!p-4 sm:!p-5">
             <section aria-labelledby={`${uid}-draft`}>
-              <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                aria-expanded={draftOpen}
+                aria-controls={`${uid}-draft-body`}
+                onClick={() => setDraftOpen((o) => !o)}
+                className={`${FOCUS_RING} -m-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center gap-3 rounded-[12px] p-1 text-left lg:pointer-events-none`}
+              >
                 <IconTile icon={Mail} color="var(--sys-violet)" />
                 <PanelTitle id={`${uid}-draft`}>Approve a draft reply</PanelTitle>
                 {selected.draft.status === "awaiting" ? (
@@ -982,55 +1116,62 @@ export function ContactDemo() {
                     Sent
                   </span>
                 )}
-              </div>
-              <div
-                className="mt-4 rounded-[14px] p-4"
-                style={{ backgroundColor: "#F6F8FB", border: "1px solid var(--sys-border)" }}
-              >
-                <p className="break-words text-sm font-bold" style={{ color: "var(--sys-navy)" }}>
-                  {selected.draft.subject}
-                </p>
-                {selected.draft.id === typingId ? (
-                  <div
-                    className="mt-3 space-y-2"
-                    role="status"
-                    aria-label="Writing the draft"
-                    aria-busy="true"
-                  >
-                    <div className="sys-shimmer sys-crm-motion h-3 w-full rounded-full bg-slate-200" />
-                    <div className="sys-shimmer sys-crm-motion h-3 w-11/12 rounded-full bg-slate-200" />
-                    <div className="sys-shimmer sys-crm-motion h-3 w-2/3 rounded-full bg-slate-200" />
-                  </div>
-                ) : (
-                  <p
-                    className="mt-2 break-words text-sm leading-relaxed"
-                    style={{ color: "var(--sys-body)" }}
-                  >
-                    {selected.draft.body}
-                  </p>
-                )}
-              </div>
-              <div className="mt-4 flex flex-wrap items-center gap-3">
-                {selected.draft.status === "awaiting" ? (
-                  <button
-                    type="button"
-                    onClick={() => approve(selected.id)}
-                    className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white hover:-translate-y-px`}
-                    style={{
-                      background: "linear-gradient(to right, #1E6FB8, #174A78)",
-                      boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
-                    }}
-                  >
-                    <Check className="h-4 w-4" strokeWidth={2.4} />
-                    Approve and send
-                  </button>
-                ) : null}
-                <p
-                  className="min-w-0 text-xs leading-relaxed"
+                <ChevronDown
+                  className={`ml-auto h-5 w-5 shrink-0 lg:hidden ${draftOpen ? "rotate-180" : ""}`}
                   style={{ color: "var(--sys-muted)" }}
+                  aria-hidden="true"
+                />
+              </button>
+              <div id={`${uid}-draft-body`} className={draftOpen ? "" : "max-lg:hidden"}>
+                <div
+                  className="mt-4 rounded-[14px] p-4"
+                  style={{ backgroundColor: "#F6F8FB", border: "1px solid var(--sys-border)" }}
                 >
-                  Nothing is sent without your approval. Nothing is really sent in this demo.
-                </p>
+                  <p className="break-words text-sm font-bold" style={{ color: "var(--sys-navy)" }}>
+                    {selected.draft.subject}
+                  </p>
+                  {selected.draft.id === typingId ? (
+                    <div
+                      className="mt-3 space-y-2"
+                      role="status"
+                      aria-label="Writing the draft"
+                      aria-busy="true"
+                    >
+                      <div className="sys-shimmer sys-crm-motion h-3 w-full rounded-full bg-slate-200" />
+                      <div className="sys-shimmer sys-crm-motion h-3 w-11/12 rounded-full bg-slate-200" />
+                      <div className="sys-shimmer sys-crm-motion h-3 w-2/3 rounded-full bg-slate-200" />
+                    </div>
+                  ) : (
+                    <p
+                      className="mt-2 break-words text-sm leading-relaxed"
+                      style={{ color: "var(--sys-body)" }}
+                    >
+                      {selected.draft.body}
+                    </p>
+                  )}
+                </div>
+                <div className="mt-4 flex flex-wrap items-center gap-3">
+                  {selected.draft.status === "awaiting" ? (
+                    <button
+                      type="button"
+                      onClick={() => approve(selected.id)}
+                      className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 w-full items-center justify-center gap-2 sm:w-auto rounded-full px-5 text-sm font-semibold text-white hover:-translate-y-px`}
+                      style={{
+                        background: "linear-gradient(to right, #1E6FB8, #174A78)",
+                        boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
+                      }}
+                    >
+                      <Check className="h-4 w-4" strokeWidth={2.4} />
+                      Approve and send
+                    </button>
+                  ) : null}
+                  <p
+                    className="min-w-0 text-[13px] leading-relaxed sm:text-xs"
+                    style={{ color: "var(--sys-muted)" }}
+                  >
+                    Nothing is sent without your approval. Nothing is really sent in this demo.
+                  </p>
+                </div>
               </div>
             </section>
           </Card>
@@ -1038,122 +1179,137 @@ export function ContactDemo() {
       </Enter>
 
       {/* Add your own lead */}
-      <Card className="!p-5">
+      <Card className="!p-4 sm:!p-5">
         <section aria-labelledby={`${uid}-lead`}>
-          <div className="flex items-center gap-3">
+          <button
+            type="button"
+            aria-expanded={leadOpen}
+            aria-controls={`${uid}-lead-body`}
+            onClick={() => setLeadOpen((o) => !o)}
+            className={`${FOCUS_RING} -m-1 flex min-h-11 w-[calc(100%+0.5rem)] items-center gap-3 rounded-[12px] p-1 text-left lg:pointer-events-none`}
+          >
             <IconTile icon={Plus} color="var(--sys-blue)" />
             <PanelTitle id={`${uid}-lead`}>Add your own lead</PanelTitle>
-          </div>
-          <p id={helpId} className="mt-3 text-sm" style={{ color: "var(--sys-body)" }}>
-            Type a made-up name. This is only a demo, nothing is sent.
-          </p>
-          <form
-            onSubmit={submitLead}
-            noValidate
-            className="mt-4 grid gap-4 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] md:items-start"
-          >
-            <div className="min-w-0">
-              <label
-                htmlFor={`${uid}-name`}
-                className="block text-sm font-semibold"
-                style={{ color: "var(--sys-navy)" }}
-              >
-                Name
-              </label>
-              <input
-                ref={nameRef}
-                id={`${uid}-name`}
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                maxLength={40}
-                autoComplete="off"
-                required
-                aria-required="true"
-                aria-invalid={errors.name ? true : undefined}
-                aria-describedby={errors.name ? `${helpId} ${nameErrId}` : helpId}
-                className={`${FOCUS_RING} mt-1.5 min-h-11 w-full rounded-[12px] bg-white px-3.5 text-sm`}
-                style={{
-                  border: `1px solid ${errors.name ? "#B45309" : "var(--sys-border)"}`,
-                  color: "var(--sys-navy)",
-                }}
-              />
-              {errors.name ? (
-                <p
-                  id={nameErrId}
-                  role="alert"
-                  className="mt-1.5 text-xs font-semibold"
-                  style={{ color: "#B45309" }}
-                >
-                  {errors.name}
-                </p>
-              ) : null}
-            </div>
-            <div className="min-w-0">
-              <label
-                htmlFor={`${uid}-msg`}
-                className="block text-sm font-semibold"
-                style={{ color: "var(--sys-navy)" }}
-              >
-                Message
-              </label>
-              <textarea
-                ref={messageRef}
-                id={`${uid}-msg`}
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                maxLength={300}
-                rows={3}
-                required
-                aria-required="true"
-                aria-invalid={errors.message ? true : undefined}
-                aria-describedby={errors.message ? `${helpId} ${msgErrId}` : helpId}
-                className={`${FOCUS_RING} mt-1.5 min-h-11 w-full resize-y rounded-[12px] bg-white px-3.5 py-2.5 text-sm`}
-                style={{
-                  border: `1px solid ${errors.message ? "#B45309" : "var(--sys-border)"}`,
-                  color: "var(--sys-navy)",
-                }}
-              />
-              {errors.message ? (
-                <p
-                  id={msgErrId}
-                  role="alert"
-                  className="mt-1.5 text-xs font-semibold"
-                  style={{ color: "#B45309" }}
-                >
-                  {errors.message}
-                </p>
-              ) : null}
-            </div>
-            <button
-              type="submit"
-              className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold text-white hover:-translate-y-px md:mt-[26px]`}
-              style={{
-                background: "linear-gradient(to right, #1E6FB8, #174A78)",
-                boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
-              }}
+            <ChevronDown
+              className={`ml-auto h-5 w-5 shrink-0 lg:hidden ${leadOpen ? "rotate-180" : ""}`}
+              style={{ color: "var(--sys-muted)" }}
+              aria-hidden="true"
+            />
+          </button>
+          <div id={`${uid}-lead-body`} className={leadOpen ? "" : "max-lg:hidden"}>
+            <p id={helpId} className="mt-3 text-sm" style={{ color: "var(--sys-body)" }}>
+              Type a made-up name. This is only a demo, nothing is sent.
+            </p>
+            <form
+              onSubmit={submitLead}
+              noValidate
+              className="mt-4 grid gap-4 md:grid-cols-[minmax(0,260px)_minmax(0,1fr)_auto] md:items-start"
             >
-              <Plus className="h-4 w-4" strokeWidth={2.4} />
-              Add lead
-            </button>
-          </form>
+              <div className="min-w-0">
+                <label
+                  htmlFor={`${uid}-name`}
+                  className="block text-sm font-semibold"
+                  style={{ color: "var(--sys-navy)" }}
+                >
+                  Name
+                </label>
+                <input
+                  ref={nameRef}
+                  id={`${uid}-name`}
+                  type="text"
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  maxLength={40}
+                  autoComplete="off"
+                  required
+                  aria-required="true"
+                  aria-invalid={errors.name ? true : undefined}
+                  aria-describedby={errors.name ? `${helpId} ${nameErrId}` : helpId}
+                  className={`${FOCUS_RING} mt-1.5 min-h-11 w-full rounded-[12px] bg-white px-3.5 text-base sm:text-sm`}
+                  style={{
+                    border: `1px solid ${errors.name ? "#B45309" : "var(--sys-border)"}`,
+                    color: "var(--sys-navy)",
+                  }}
+                />
+                {errors.name ? (
+                  <p
+                    id={nameErrId}
+                    role="alert"
+                    className="mt-1.5 text-xs font-semibold"
+                    style={{ color: "#B45309" }}
+                  >
+                    {errors.name}
+                  </p>
+                ) : null}
+              </div>
+              <div className="min-w-0">
+                <label
+                  htmlFor={`${uid}-msg`}
+                  className="block text-sm font-semibold"
+                  style={{ color: "var(--sys-navy)" }}
+                >
+                  Message
+                </label>
+                <textarea
+                  ref={messageRef}
+                  id={`${uid}-msg`}
+                  value={message}
+                  onChange={(e) => setMessage(e.target.value)}
+                  maxLength={300}
+                  rows={3}
+                  required
+                  aria-required="true"
+                  aria-invalid={errors.message ? true : undefined}
+                  aria-describedby={errors.message ? `${helpId} ${msgErrId}` : helpId}
+                  className={`${FOCUS_RING} mt-1.5 min-h-11 w-full resize-y rounded-[12px] bg-white px-3.5 py-2.5 text-base sm:text-sm`}
+                  style={{
+                    border: `1px solid ${errors.message ? "#B45309" : "var(--sys-border)"}`,
+                    color: "var(--sys-navy)",
+                  }}
+                />
+                {errors.message ? (
+                  <p
+                    id={msgErrId}
+                    role="alert"
+                    className="mt-1.5 text-xs font-semibold"
+                    style={{ color: "#B45309" }}
+                  >
+                    {errors.message}
+                  </p>
+                ) : null}
+              </div>
+              <button
+                type="submit"
+                className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold text-white hover:-translate-y-px md:mt-[26px]`}
+                style={{
+                  background: "linear-gradient(to right, #1E6FB8, #174A78)",
+                  boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
+                }}
+              >
+                <Plus className="h-4 w-4" strokeWidth={2.4} />
+                Add lead
+              </button>
+            </form>
 
-          {showConfirm ? (
-            <div
-              key={newLead?.id}
-              role="status"
-              className="sys-pop mt-4 rounded-[14px] p-3.5 text-sm font-medium"
-              style={{
-                backgroundColor: "rgba(16, 185, 129, 0.08)",
-                border: "1px solid rgba(16, 185, 129, 0.25)",
-                color: "var(--sys-green-text)",
-              }}
-            >
-              <p className="font-bold">Lead added</p>
-              <LeadChecklist />
-              <p className="mt-2 text-xs font-normal">See it in the Timeline above.</p>
-            </div>
-          ) : null}
+            {showConfirm ? (
+              <div
+                key={newLead?.id}
+                role="status"
+                className="sys-pop mt-4 rounded-[14px] p-3.5 text-sm font-medium"
+                style={{
+                  backgroundColor: "rgba(16, 185, 129, 0.08)",
+                  border: "1px solid rgba(16, 185, 129, 0.25)",
+                  color: "var(--sys-green-text)",
+                }}
+              >
+                <p className="font-bold">Lead added</p>
+                <LeadChecklist />
+                <p className="mt-2 text-[13px] font-normal sm:text-xs">
+                  See it in the Timeline above.
+                </p>
+              </div>
+            ) : null}
+          </div>
         </section>
       </Card>
 
@@ -1172,7 +1328,7 @@ export function ContactDemo() {
           <RotateCcw className="h-4 w-4" strokeWidth={2} />
           Reset demo data
         </button>
-        <p className="min-w-0 text-xs" style={{ color: "var(--sys-muted)" }}>
+        <p className="min-w-0 text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
           Your changes are saved in this browser for 24 hours.
         </p>
       </div>

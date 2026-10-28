@@ -180,7 +180,7 @@ interface Pt {
 }
 
 interface Layout {
-  mode: "wide" | "mid" | "stack" | "car";
+  mode: "wide" | "mid" | "stack" | "phone" | "car";
   h: number;
   bs: number;
   slots: { fx: number; top: number }[];
@@ -202,6 +202,7 @@ function layoutFor(w: number, reduced: boolean): Layout {
   if (w >= 760) {
     return mk([0.27, 0.73, 0.73, 0.27, 0.27], [r0, r0, r1, r1, r2], "mid", r2 + BOX_H + PAD_BOT);
   }
+  if (w < 680) return mk([0.5, 0.5, 0.5, 0.5, 0.5], [0, 0, 0, 0, 0], "phone", 0);
   if (reduced) {
     const tops = [0, 1, 2, 3, 4].map((i) => r0 + i * SLOT_H);
     return mk([0.5, 0.5, 0.5, 0.5, 0.5], tops, "stack", r0 + 4 * SLOT_H + BOX_H + PAD_BOT);
@@ -500,6 +501,7 @@ function buildNodes(lay: Layout, w: number): (AmbNode | null)[] {
   return res;
 }
 
+const MAP_LABELS = ["Inbox", "Reply", "Board", "Quote", "Calendar"];
 const COUNTER_LABELS = ["Enquiries today", "Replies sent", "Quotes out", "Booked"];
 const COUNTER_OF = [0, 1, -1, 2, 3];
 const COUNTS_START = [12, 12, 7, 4];
@@ -753,7 +755,46 @@ const CSS = `
 @keyframes rm-bump{0%{transform:scale(1)}40%{transform:scale(1.35)}100%{transform:scale(1)}}
 @keyframes rm-slide{0%{transform:translateX(-${SLIDE}px)}100%{transform:translateX(0)}}
 @keyframes rm-stamp{0%{opacity:0;transform:rotate(-12deg) scale(1.3)}50%{opacity:1;transform:rotate(-12deg) scale(.94)}75%{transform:rotate(-12deg) scale(1.05)}100%{opacity:1;transform:rotate(-12deg) scale(1)}}
+.rm-pm{padding:6px 0 4px}
+.rm-map{position:relative;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 12px 0}
+.rm-mline{position:absolute;left:calc(12px + (100% - 24px) / 10);right:calc(12px + (100% - 24px) / 10);top:48px;height:0;pointer-events:none}
+.rm-mdots{position:absolute;left:0;right:0;top:-1.5px;border-top:3px dotted rgba(124,58,237,.5)}
+.rm-morb{position:absolute;left:0;top:0;width:0;height:0}
+.rm-morbi{position:absolute;left:-7px;top:-7px;width:14px;height:14px;border-radius:50%;opacity:0;
+  background:radial-gradient(circle at 32% 26%,#fff 0 10%,var(--sys-violet) 60%,#4c1d95);box-shadow:0 0 10px 2px rgba(124,58,237,.45);animation:rm-orbgo ${TRAVEL_MS}ms ease-in-out both}
+.rm-mb{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;min-height:44px;padding:6px 0 4px;border:0;background:none;cursor:pointer;
+  color:var(--sys-body);font:600 12px/1.2 'Plus Jakarta Sans',sans-serif;-webkit-tap-highlight-color:transparent}
+.rm-mb:focus-visible{outline:3px solid var(--sys-blue);outline-offset:-2px;border-radius:14px}
+.rm-mb:disabled{opacity:.5;cursor:not-allowed}
+.rm-mb .rm-bd{position:relative;margin-bottom:6px;transition:transform .3s cubic-bezier(.2,.8,.2,1),opacity .25s;opacity:.88}
+.rm-mb[data-on=true] .rm-bd{transform:scale(1.2);opacity:1}
+.rm-mb[data-on=true]{color:var(--sys-navy);font-weight:800}
+.rm-mg{position:absolute;left:50%;top:6px;width:92px;height:92px;margin:-20px 0 0 -46px;border-radius:50%;opacity:0;transition:opacity .3s;pointer-events:none;
+  background:radial-gradient(circle,color-mix(in srgb,var(--bc) 55%,transparent),transparent 68%)}
+.rm-mb[data-on=true] .rm-mg{opacity:1}
+.rm-car{position:relative;display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;overscroll-behavior-x:contain;touch-action:pan-x pan-y;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.rm-car::-webkit-scrollbar{display:none}
+.rm-car[data-lock=true]{overflow-x:hidden}
+.rm-slide{position:relative;flex:none;width:var(--cw);height:${BOX_H + 44}px;scroll-snap-align:center;scroll-snap-stop:always}
+.rm-pm .rm-st{left:0;top:20px;width:var(--cw);transform-origin:50% 60%;transform:none;opacity:.75}
+.rm-pm .rm-st[data-on=true]{opacity:1;transform:translateY(-4px) scale(1.03)}
+.rm-pm .rm-st[data-dim=true]{opacity:.35}
+.rm-pm .rm-glow{left:-6px;top:0;width:calc(var(--cw) + 12px);height:${OH}px;filter:none;border-radius:40px;background:radial-gradient(closest-side,var(--ac),transparent)}
+.rm-pm .rm-st[data-on=true] .rm-glow{opacity:.4}
+.rm-pm .rm-float{width:var(--cw)}
+.rm-pm .rm-st:not([data-on=true]) .rm-float,.rm-pm .rm-st:not([data-on=true]) .rm-gloss::before{animation:none}
+.rm-pm .rm-phone{left:8px;width:calc(var(--cw) - 16px)}
+.rm-pm .rm-scr{padding:30px 6px 0}
+.rm-pm .rm-row{gap:6px;padding:6px 2px}
+.rm-pm .rm-cb{padding:10px;gap:8px}
+.rm-pm .rm-sheet{padding:12px}
+.rm-pm .rm-cal{padding:10px}
+.rm-ph{position:absolute;left:0;top:20px;width:var(--cw);height:${BOX_H}px}
+.rm-phc{position:absolute;left:8px;right:8px;top:0;height:${OH}px;border-radius:22px;background:rgba(255,255,255,.6);border:1px dashed rgba(20,33,61,.18)}
+.rm-ph .rm-tt{opacity:.7}
 @media (max-width:639px){.rm-steplabel{display:none}}
+@keyframes rm-orbgo{0%{opacity:0;transform:translateX(0)}20%,80%{opacity:1}100%{opacity:0;transform:translateX(var(--seg))}}
+.rm-root[data-vis=false] .rm-morbi{animation-play-state:paused}
 @media (prefers-reduced-motion:reduce){.rm-root *{animation:none!important;transition-duration:.25s!important}}
 .rm-root[data-reduced=true] *{animation:none!important;transition-duration:.25s!important}
 `;
@@ -983,6 +1024,21 @@ function CalObj({ who }: { who: number }) {
   );
 }
 
+function StationObj({ i, who, without }: { i: number; who: number; without: boolean }) {
+  switch (i) {
+    case 0:
+      return <PhoneObj who={who} without={without} />;
+    case 1:
+      return <ChatObj who={who} />;
+    case 2:
+      return <BoardObj who={who} />;
+    case 3:
+      return <QuoteObj who={who} />;
+    default:
+      return <CalObj who={who} />;
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Live feed
 // ---------------------------------------------------------------------------
@@ -1075,6 +1131,9 @@ export function OperationsRoom() {
   const lastRef = useRef<number[]>([0, 1, 3]);
   const idRef = useRef(1);
   const spawnRef = useRef(0);
+  const carRef = useRef<HTMLDivElement>(null);
+  const progRef = useRef(0);
+  const scrollT = useRef<number | undefined>(undefined);
   const [nodes, setNodes] = useState<(AmbNode | null)[]>(() =>
     buildNodes(layoutFor(1120, false), 1120),
   );
@@ -1083,7 +1142,10 @@ export function OperationsRoom() {
   const route = useMemo(() => buildRoute(lay, W), [lay, W]);
   const pts = route.ports;
   const running = playing && visible && tabVisible && !reduced && !without;
-  const showTok = !reduced && lay.mode !== "car";
+  const ph = lay.mode === "phone";
+  const cw = Math.max(240, Math.min(300, Math.round(W * 0.7)));
+  const seg = (W - 24) / 5;
+  const showTok = !reduced && lay.mode !== "car" && !ph;
   const feedVariant = lay.mode === "wide" ? "panel" : lay.mode === "mid" ? "block" : "ticker";
 
   const apply = useCallback((t: number) => {
@@ -1180,7 +1242,7 @@ export function OperationsRoom() {
       setPlaying(!reduced);
     }
     setAnnounce(
-      next ? `Without the system. ${WITHOUT_SAY}.` : "With the system. Replaying the tour.",
+      next ? `Without Systemations. ${WITHOUT_SAY}.` : "With Systemations. Replaying the tour.",
     );
   };
 
@@ -1251,13 +1313,14 @@ export function OperationsRoom() {
 
   // Re-place the pool whenever the layout changes
   useEffect(() => {
-    setNodes(buildNodes(lay, W));
-  }, [lay, W]);
+    setNodes(ph ? Array.from({ length: NODE_POOL }, () => null) : buildNodes(lay, W));
+  }, [lay, W, ph]);
 
   // Ambient action nodes: one new node every 1.8s in a free gutter, 8 slots reused.
   // Paused while the tour is paused or a step is selected.
   useEffect(() => {
-    if (reduced || without || !playing || !visible || !tabVisible || lay.mode === "car") return;
+    if (reduced || without || !playing || !visible || !tabVisible || lay.mode === "car" || ph)
+      return;
     const id = window.setInterval(() => {
       const c = spawnRef.current++;
       const st = (c * 2 + 1) % 5;
@@ -1272,7 +1335,48 @@ export function OperationsRoom() {
       });
     }, 1800);
     return () => window.clearInterval(id);
-  }, [reduced, without, playing, visible, tabVisible, lay, W]);
+  }, [reduced, without, playing, visible, tabVisible, lay, W, ph]);
+
+  // Phone carousel: step changes scroll the card into view; swiping selects the step.
+  const scrollToCard = useCallback(
+    (i: number) => {
+      const c = carRef.current;
+      const card = c?.children[i] as HTMLElement | undefined;
+      if (!c || !card) return;
+      const left = card.offsetLeft - (c.clientWidth - card.offsetWidth) / 2;
+      if (Math.abs(c.scrollLeft - left) < 2) return;
+      progRef.current = performance.now() + (reduced ? 120 : 800);
+      c.scrollTo({ left, behavior: reduced ? "auto" : "smooth" });
+    },
+    [reduced],
+  );
+
+  useEffect(() => {
+    if (ph) scrollToCard(without ? 0 : active);
+  }, [ph, active, without, scrollToCard]);
+
+  useEffect(() => () => window.clearTimeout(scrollT.current), []);
+
+  const onCarScroll = () => {
+    if (without) return;
+    window.clearTimeout(scrollT.current);
+    scrollT.current = window.setTimeout(() => {
+      const c = carRef.current;
+      if (!c || performance.now() < progRef.current) return;
+      const mid = c.scrollLeft + c.clientWidth / 2;
+      let best = 0;
+      let bd = Infinity;
+      for (let k = 0; k < c.children.length; k++) {
+        const el = c.children[k] as HTMLElement;
+        const d = Math.abs(el.offsetLeft + el.offsetWidth / 2 - mid);
+        if (d < bd) {
+          bd = d;
+          best = k;
+        }
+      }
+      if (best !== activeRef.current) selectStep(best);
+    }, 140);
+  };
 
   const cur = at(active);
   const sayNow = without ? WITHOUT_SAY : cur.say;
@@ -1327,234 +1431,331 @@ export function OperationsRoom() {
           role="group"
           aria-label="Operations room illustration"
           aria-describedby="rm-desc"
-          style={{ height: lay.h }}
+          style={ph ? { height: "auto", minHeight: 0, touchAction: "auto" } : { height: lay.h }}
         >
           <p id="rm-desc" className="rm-sr">
             {DESCRIPTION}
           </p>
           {feedVariant === "panel" && feedEl}
 
-          <div className="rm-tilt" style={{ height: lay.h }}>
-            <div className="rm-floorw" aria-hidden="true">
-              <div className="rm-floor" />
-            </div>
-
-            {lay.mode !== "car" && (
-              <svg
-                className="rm-path"
-                aria-hidden="true"
-                width={W}
-                height={lay.h}
-                viewBox={`0 0 ${W} ${lay.h}`}
-              >
-                <path
-                  d={route.d}
-                  fill="none"
-                  stroke="rgba(124,58,237,.16)"
-                  strokeWidth="12"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  className="rm-dash"
-                  d={route.d}
-                  fill="none"
-                  stroke="var(--sys-violet)"
-                  strokeOpacity=".75"
-                  strokeWidth="3"
-                  strokeDasharray="1 11"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                {route.ports.map((p, i) => (
-                  <g key={i}>
-                    <circle cx={p.x} cy={p.y} r="11" fill="rgba(124,58,237,.18)" />
-                    <circle cx={p.x} cy={p.y} r="5" fill="var(--sys-violet)" />
-                    <circle cx={p.x - 1.5} cy={p.y - 1.5} r="1.8" fill="#fff" />
-                  </g>
-                ))}
-              </svg>
-            )}
-
-            {/* Ambient action nodes and their dotted links (background depth) */}
-            {lay.mode !== "car" && !without && (
-              <div className="rm-amb" data-off={!playing} aria-hidden="true">
-                <svg className="rm-links" width={W} height={lay.h} viewBox={`0 0 ${W} ${lay.h}`}>
-                  {nodes.map((n, s) => {
-                    if (!n) return null;
-                    const sl = lay.slots[n.st] as { fx: number; top: number };
-                    return (
-                      <line
-                        key={`${s}-${n.k}`}
-                        className="rm-ln"
-                        x1={n.x}
-                        y1={n.y}
-                        x2={sl.fx * W}
-                        y2={sl.top + OH * 0.55}
-                      />
-                    );
-                  })}
-                </svg>
-                {nodes.map((n, s) => {
-                  if (!n) return null;
-                  const [label, col] = (NODE_TEXT[n.st] as [string, string][])[n.i] as [
-                    string,
-                    string,
-                  ];
-                  return (
-                    <div
-                      key={`${s}-${n.k}`}
-                      className="rm-an"
-                      style={{ left: n.x, top: n.y, ["--bc" as string]: col }}
+          {ph ? (
+            <div className="rm-pm" style={{ ["--cw" as string]: `${cw}px` }}>
+              <div className="rm-map" role="group" aria-label="Steps">
+                <div className="rm-mline" aria-hidden="true">
+                  <span className="rm-mdots" />
+                  {running && active < 4 && (
+                    <span
+                      className="rm-morb"
+                      style={{ transform: `translateX(${active * seg}px)` }}
                     >
-                      <div className="rm-ai">
-                        <i />
-                        {label}
-                      </div>
+                      <i
+                        key={active}
+                        className="rm-morbi"
+                        style={{ ["--seg" as string]: `${seg}px` }}
+                      />
+                    </span>
+                  )}
+                </div>
+                {STATIONS.map((s, i) => (
+                  <button
+                    key={s.title}
+                    type="button"
+                    className="rm-mb"
+                    data-on={!without && i === active}
+                    disabled={without}
+                    aria-current={!without && i === active ? "step" : undefined}
+                    aria-label={`Step ${i + 1}: ${s.title}`}
+                    style={{ ["--bc" as string]: s.badge }}
+                    onClick={() => selectStep(i)}
+                  >
+                    <span className="rm-mg" aria-hidden="true" />
+                    <Badge k={s.glyph} c={s.badge} z={52} />
+                    <span aria-hidden="true">{MAP_LABELS[i]}</span>
+                  </button>
+                ))}
+              </div>
+              <div
+                ref={carRef}
+                className="rm-car"
+                data-lock={without}
+                style={{ paddingInline: Math.max(0, Math.floor((W - cw) / 2)) }}
+                onScroll={onCarScroll}
+              >
+                {STATIONS.map((s, i) => {
+                  const on = without ? i === 0 : i === active;
+                  const near = Math.abs(i - active) <= 1;
+                  const w = who[i] as number;
+                  return (
+                    <div key={s.title} className="rm-slide">
+                      {near ? (
+                        <div
+                          className="rm-st"
+                          role="button"
+                          tabIndex={0}
+                          aria-label={`Step ${i + 1}, ${s.title}. ${s.say}`}
+                          aria-pressed={!without && i === active && !playing}
+                          aria-disabled={without}
+                          data-on={on}
+                          data-dim={without && i > 0}
+                          style={
+                            { "--ac": s.accent, "--fd": `${-i * 1.1}s` } as React.CSSProperties
+                          }
+                          onClick={() => selectStep(i)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter" || e.key === " ") {
+                              e.preventDefault();
+                              selectStep(i);
+                            }
+                          }}
+                        >
+                          <span className="rm-sh" aria-hidden="true" />
+                          <span className="rm-sh2" aria-hidden="true" />
+                          <span className="rm-glow" aria-hidden="true" />
+                          <span className="rm-ul" aria-hidden="true" />
+                          <div className="rm-float" aria-hidden="true">
+                            <div
+                              className="rm-obj"
+                              key={`${keys[i]}-${without && i === 0 ? "w" : "n"}`}
+                            >
+                              <StationObj i={i} who={w} without={without} />
+                            </div>
+                          </div>
+                          <span className="rm-tt">
+                            <Badge k={s.glyph} c={s.badge} z={30} />
+                            {s.title}
+                          </span>
+                        </div>
+                      ) : (
+                        <div className="rm-ph" aria-hidden="true">
+                          <span className="rm-phc" />
+                          <span className="rm-tt">
+                            <Badge k={s.glyph} c={s.badge} z={30} />
+                            {s.title}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
               </div>
-            )}
+            </div>
+          ) : (
+            <div className="rm-tilt" style={{ height: lay.h }}>
+              <div className="rm-floorw" aria-hidden="true">
+                <div className="rm-floor" />
+              </div>
 
-            {/* Arrival pulses, one per station */}
-            {showTok &&
-              !without &&
-              pts.map((p, i) => (
-                <span
-                  key={`${i}-${keys[i]}`}
-                  className="rm-pulse"
+              {lay.mode !== "car" && (
+                <svg
+                  className="rm-path"
                   aria-hidden="true"
-                  style={{ left: p.x, top: p.y }}
-                />
-              ))}
-
-            {STATIONS.map((s, i) => {
-              const slot = lay.slots[i] as { fx: number; top: number };
-              const on = without ? i === 0 : i === active;
-              const hide = lay.mode === "car" && i !== active;
-              const w = who[i] as number;
-              const objects = [
-                <PhoneObj key="o" who={w} without={without} />,
-                <ChatObj key="o" who={w} />,
-                <BoardObj key="o" who={w} />,
-                <QuoteObj key="o" who={w} />,
-                <CalObj key="o" who={w} />,
-              ];
-              return (
-                <div
-                  key={s.title}
-                  className="rm-st"
-                  role="button"
-                  tabIndex={hide ? -1 : 0}
-                  aria-label={`Step ${i + 1}, ${s.title}. ${s.say}`}
-                  aria-pressed={!without && i === active && !playing}
-                  aria-disabled={without}
-                  data-on={on}
-                  data-dim={without && i > 0}
-                  data-hide={hide}
-                  style={
-                    {
-                      left: `calc(${slot.fx * 100}% - ${OW / 2}px)`,
-                      top: slot.top,
-                      "--ac": s.accent,
-                      "--bs": lay.bs,
-                      "--fd": `${-i * 1.1}s`,
-                    } as React.CSSProperties
-                  }
-                  onClick={() => selectStep(i)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      e.preventDefault();
-                      selectStep(i);
-                    }
-                  }}
+                  width={W}
+                  height={lay.h}
+                  viewBox={`0 0 ${W} ${lay.h}`}
                 >
-                  <span className="rm-sh" aria-hidden="true" />
-                  <span className="rm-sh2" aria-hidden="true" />
-                  <span className="rm-glow" aria-hidden="true" />
-                  <span className="rm-ul" aria-hidden="true" />
-                  <div className="rm-float" aria-hidden="true">
-                    <div className="rm-obj" key={`${keys[i]}-${without && i === 0 ? "w" : "n"}`}>
-                      {objects[i]}
-                    </div>
-                  </div>
-                  <span className="rm-tt">
-                    <Badge k={s.glyph} c={s.badge} z={30} />
-                    {s.title}
-                  </span>
-                </div>
-              );
-            })}
+                  <path
+                    d={route.d}
+                    fill="none"
+                    stroke="rgba(124,58,237,.16)"
+                    strokeWidth="12"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  <path
+                    className="rm-dash"
+                    d={route.d}
+                    fill="none"
+                    stroke="var(--sys-violet)"
+                    strokeOpacity=".75"
+                    strokeWidth="3"
+                    strokeDasharray="1 11"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                  {route.ports.map((p, i) => (
+                    <g key={i}>
+                      <circle cx={p.x} cy={p.y} r="11" fill="rgba(124,58,237,.18)" />
+                      <circle cx={p.x} cy={p.y} r="5" fill="var(--sys-violet)" />
+                      <circle cx={p.x - 1.5} cy={p.y - 1.5} r="1.8" fill="#fff" />
+                    </g>
+                  ))}
+                </svg>
+              )}
 
-            {/* Three glossy job tokens with trails, in their own top layer above every standee */}
-            <div className="rm-toks" aria-hidden="true">
+              {/* Ambient action nodes and their dotted links (background depth) */}
+              {lay.mode !== "car" && !without && (
+                <div className="rm-amb" data-off={!playing} aria-hidden="true">
+                  <svg className="rm-links" width={W} height={lay.h} viewBox={`0 0 ${W} ${lay.h}`}>
+                    {nodes.map((n, s) => {
+                      if (!n) return null;
+                      const sl = lay.slots[n.st] as { fx: number; top: number };
+                      return (
+                        <line
+                          key={`${s}-${n.k}`}
+                          className="rm-ln"
+                          x1={n.x}
+                          y1={n.y}
+                          x2={sl.fx * W}
+                          y2={sl.top + OH * 0.55}
+                        />
+                      );
+                    })}
+                  </svg>
+                  {nodes.map((n, s) => {
+                    if (!n) return null;
+                    const [label, col] = (NODE_TEXT[n.st] as [string, string][])[n.i] as [
+                      string,
+                      string,
+                    ];
+                    return (
+                      <div
+                        key={`${s}-${n.k}`}
+                        className="rm-an"
+                        style={{ left: n.x, top: n.y, ["--bc" as string]: col }}
+                      >
+                        <div className="rm-ai">
+                          <i />
+                          {label}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Arrival pulses, one per station */}
               {showTok &&
-                CUSTOMERS.map((c, j) => {
-                  const tj = jobT(0, j);
-                  const p = posAt(tj, route);
-                  const tr = `translate3d(${p.x}px,${p.y}px,0)`;
-                  return (
-                    <Fragment key={c.name}>
-                      {TRAIL_LAGS.map((lag, k) => (
+                !without &&
+                pts.map((p, i) => (
+                  <span
+                    key={`${i}-${keys[i]}`}
+                    className="rm-pulse"
+                    aria-hidden="true"
+                    style={{ left: p.x, top: p.y }}
+                  />
+                ))}
+
+              {STATIONS.map((s, i) => {
+                const slot = lay.slots[i] as { fx: number; top: number };
+                const on = without ? i === 0 : i === active;
+                const hide = lay.mode === "car" && i !== active;
+                const w = who[i] as number;
+                return (
+                  <div
+                    key={s.title}
+                    className="rm-st"
+                    role="button"
+                    tabIndex={hide ? -1 : 0}
+                    aria-label={`Step ${i + 1}, ${s.title}. ${s.say}`}
+                    aria-pressed={!without && i === active && !playing}
+                    aria-disabled={without}
+                    data-on={on}
+                    data-dim={without && i > 0}
+                    data-hide={hide}
+                    style={
+                      {
+                        left: `calc(${slot.fx * 100}% - ${OW / 2}px)`,
+                        top: slot.top,
+                        "--ac": s.accent,
+                        "--bs": lay.bs,
+                        "--fd": `${-i * 1.1}s`,
+                      } as React.CSSProperties
+                    }
+                    onClick={() => selectStep(i)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        selectStep(i);
+                      }
+                    }}
+                  >
+                    <span className="rm-sh" aria-hidden="true" />
+                    <span className="rm-sh2" aria-hidden="true" />
+                    <span className="rm-glow" aria-hidden="true" />
+                    <span className="rm-ul" aria-hidden="true" />
+                    <div className="rm-float" aria-hidden="true">
+                      <div className="rm-obj" key={`${keys[i]}-${without && i === 0 ? "w" : "n"}`}>
+                        <StationObj i={i} who={w} without={without} />
+                      </div>
+                    </div>
+                    <span className="rm-tt">
+                      <Badge k={s.glyph} c={s.badge} z={30} />
+                      {s.title}
+                    </span>
+                  </div>
+                );
+              })}
+
+              {/* Three glossy job tokens with trails, in their own top layer above every standee */}
+              <div className="rm-toks" aria-hidden="true">
+                {showTok &&
+                  CUSTOMERS.map((c, j) => {
+                    const tj = jobT(0, j);
+                    const p = posAt(tj, route);
+                    const tr = `translate3d(${p.x}px,${p.y}px,0)`;
+                    return (
+                      <Fragment key={c.name}>
+                        {TRAIL_LAGS.map((lag, k) => (
+                          <div
+                            key={lag}
+                            ref={(el) => {
+                              trailRefs.current[j * 2 + k] = el;
+                            }}
+                            className="rm-tok"
+                            aria-hidden="true"
+                            style={{
+                              transform: tr,
+                              opacity: 0.5 - k * 0.2,
+                              ["--jc" as string]: c.color,
+                            }}
+                          >
+                            <span className="rm-trail" />
+                          </div>
+                        ))}
                         <div
-                          key={lag}
                           ref={(el) => {
-                            trailRefs.current[j * 2 + k] = el;
+                            tokRefs.current[j] = el;
                           }}
                           className="rm-tok"
                           aria-hidden="true"
-                          style={{
-                            transform: tr,
-                            opacity: 0.5 - k * 0.2,
-                            ["--jc" as string]: c.color,
-                          }}
+                          style={{ transform: tr, ["--jc" as string]: c.color }}
                         >
-                          <span className="rm-trail" />
+                          <span className="rm-halo" />
+                          <span className="rm-orb" />
+                          <span className="rm-jt">{c.name}</span>
                         </div>
-                      ))}
+                      </Fragment>
+                    );
+                  })}
+                {reduced &&
+                  lay.mode !== "car" &&
+                  !ph &&
+                  !without &&
+                  CUSTOMERS.map((c, j) => {
+                    const p = posAt(jobT(active * STEP_MS + TRAVEL_MS, j), route);
+                    return (
                       <div
-                        ref={(el) => {
-                          tokRefs.current[j] = el;
-                        }}
-                        className="rm-tok"
+                        key={`${c.name}-${active}`}
+                        className="rm-tok rm-still"
                         aria-hidden="true"
-                        style={{ transform: tr, ["--jc" as string]: c.color }}
+                        style={{
+                          transform: `translate3d(${p.x}px,${p.y}px,0)`,
+                          ["--jc" as string]: c.color,
+                        }}
                       >
                         <span className="rm-halo" />
                         <span className="rm-orb" />
                         <span className="rm-jt">{c.name}</span>
                       </div>
-                    </Fragment>
-                  );
-                })}
-              {reduced &&
-                lay.mode !== "car" &&
-                !without &&
-                CUSTOMERS.map((c, j) => {
-                  const p = posAt(jobT(active * STEP_MS + TRAVEL_MS, j), route);
-                  return (
-                    <div
-                      key={`${c.name}-${active}`}
-                      className="rm-tok rm-still"
-                      aria-hidden="true"
-                      style={{
-                        transform: `translate3d(${p.x}px,${p.y}px,0)`,
-                        ["--jc" as string]: c.color,
-                      }}
-                    >
-                      <span className="rm-halo" />
-                      <span className="rm-orb" />
-                      <span className="rm-jt">{c.name}</span>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+              </div>
             </div>
-          </div>
+          )}
         </div>
 
         {/* Caption */}
-        <Card className="mx-auto mt-5 max-w-[860px]" style={{ padding: 22 }}>
+        <Card className="mx-auto mt-3 max-w-[860px] sm:mt-5" style={{ padding: ph ? 14 : 22 }}>
           <h3
             className="text-xl font-bold"
             style={{
@@ -1562,12 +1763,18 @@ export function OperationsRoom() {
               color: without ? "#B45309" : "var(--sys-navy)",
             }}
           >
-            {without ? "Without the system" : `Step ${active + 1} of 5: ${cur.title}`}
+            {without ? "Without Systemations" : `Step ${active + 1} of 5: ${cur.title}`}
           </h3>
-          <p className="mt-2 text-base font-semibold" style={{ color: "var(--sys-navy)" }}>
+          <p
+            className={`mt-2 font-semibold ${ph ? "text-[15px]" : "text-base"}`}
+            style={{ color: "var(--sys-navy)" }}
+          >
             {sayNow}
           </p>
-          <p className="mt-1 text-base leading-relaxed" style={{ color: "var(--sys-body)" }}>
+          <p
+            className={`mt-1 leading-relaxed ${ph ? "text-[15px]" : "text-base"}`}
+            style={{ color: "var(--sys-body)" }}
+          >
             {detailNow}
           </p>
           <p className="mt-3">
@@ -1610,36 +1817,38 @@ export function OperationsRoom() {
             onClick={toggleWithout}
           >
             <span className="rm-sw" aria-hidden="true" />
-            Without the system
+            Without Systemations
           </button>
         </div>
 
-        <ol className="mx-auto mt-4 flex max-w-[860px] list-none flex-wrap items-center justify-center gap-2 p-0">
-          {STATIONS.map((s, i) => (
-            <li key={s.title}>
-              <button
-                type="button"
-                className="rm-btn"
-                disabled={without}
-                aria-current={!without && i === active ? "step" : undefined}
-                aria-label={`Step ${i + 1}: ${s.title}`}
-                onClick={() => selectStep(i)}
-              >
-                <span
-                  className="rm-bd"
-                  data-round="true"
-                  aria-hidden="true"
-                  style={{ ["--bc" as string]: s.badge, ["--bz" as string]: "26px" }}
+        {!ph && (
+          <ol className="mx-auto mt-4 flex max-w-[860px] list-none flex-wrap items-center justify-center gap-2 p-0">
+            {STATIONS.map((s, i) => (
+              <li key={s.title}>
+                <button
+                  type="button"
+                  className="rm-btn"
+                  disabled={without}
+                  aria-current={!without && i === active ? "step" : undefined}
+                  aria-label={`Step ${i + 1}: ${s.title}`}
+                  onClick={() => selectStep(i)}
                 >
-                  {i + 1}
-                </span>
-                <span className="rm-steplabel" aria-hidden="true">
-                  {s.title}
-                </span>
-              </button>
-            </li>
-          ))}
-        </ol>
+                  <span
+                    className="rm-bd"
+                    data-round="true"
+                    aria-hidden="true"
+                    style={{ ["--bc" as string]: s.badge, ["--bz" as string]: "26px" }}
+                  >
+                    {i + 1}
+                  </span>
+                  <span className="rm-steplabel" aria-hidden="true">
+                    {s.title}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ol>
+        )}
 
         <div className="rm-sr" role="status" aria-live="polite">
           {announce}

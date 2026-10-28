@@ -42,7 +42,7 @@ function VoiceWidget({
 
   if (!widget) {
     return (
-      <Card className="p-5">
+      <Card className="p-4 sm:p-5">
         <p className="text-sm leading-relaxed" style={{ color: "var(--sys-body)" }}>
           Explore the example here. We can show the live phone agent on your call.
         </p>
@@ -55,7 +55,7 @@ function VoiceWidget({
   const spoken = isBusiness && canPersonalise ? buildSpokenBrief(brief!) : "";
 
   return (
-    <Card className="p-5">
+    <Card className="p-4 sm:p-5">
       <div
         className="mb-3 flex items-center gap-2 border-b pb-3"
         style={{ borderColor: "var(--sys-border)" }}
@@ -71,7 +71,7 @@ function VoiceWidget({
           >
             Talk to Erin
           </div>
-          <div className="text-[11px]" style={{ color: "var(--sys-muted)" }}>
+          <div className="text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
             A short voice preview, up to 3 minutes
           </div>
         </div>
@@ -80,12 +80,15 @@ function VoiceWidget({
       {isBusiness ? (
         canPersonalise ? (
           <>
-            <p className="mb-3 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+            <p
+              className="mb-3 text-[13px] sm:text-xs leading-relaxed"
+              style={{ color: "var(--sys-body)" }}
+            >
               Say "Demo my business", then read this short brief to the assistant. It will confirm
               the details before starting the example.
             </p>
             <div
-              className="mb-3 rounded-[12px] p-3 text-xs leading-relaxed"
+              className="mb-3 rounded-[12px] p-3 text-[13px] sm:text-xs leading-relaxed"
               style={{
                 backgroundColor: "#F8FAFC",
                 border: "1px solid var(--sys-border)",
@@ -97,23 +100,29 @@ function VoiceWidget({
             <div className="mb-3">
               <CopyButton text={spoken} label="Copy spoken brief" copiedLabel="Brief copied" />
             </div>
-            <p className="mb-3 text-[11px]" style={{ color: "var(--sys-muted)" }}>
+            <p className="mb-3 text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
               Your brief is not passed to the assistant automatically. You read it to the assistant
               to set up the example.
             </p>
           </>
         ) : (
-          <p className="mb-3 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+          <p
+            className="mb-3 text-[13px] sm:text-xs leading-relaxed"
+            style={{ color: "var(--sys-body)" }}
+          >
             A personalised voice trial for your business is being prepared. We can show it on your
             call.
           </p>
         )
       ) : (
         <>
-          <p className="mb-3 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+          <p
+            className="mb-3 text-[13px] sm:text-xs leading-relaxed"
+            style={{ color: "var(--sys-body)" }}
+          >
             Press Start voice trial, then ask Erin a question.
           </p>
-          <p className="mb-3 text-[11px]" style={{ color: "var(--sys-muted)" }}>
+          <p className="mb-3 text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
             AI demo · no real bookings
           </p>
         </>
@@ -127,7 +136,7 @@ function VoiceWidget({
           title="Live Systemations voice assistant"
           widget={widget}
           allow="microphone"
-          height={220}
+          className="h-[260px] sm:h-[220px]"
           fallbackText="The voice assistant could not load right now. Try again, or we can show you the live phone agent on your call."
         />
       </div>
@@ -173,7 +182,7 @@ export function PhoneDemo({
   const isLast = turnIndex === PHONE_TURNS.length - 1;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <VoiceWidget demoMode={demoMode} brief={brief} />
       <div
         className="overflow-hidden rounded-[16px] bg-white"
@@ -186,7 +195,7 @@ export function PhoneDemo({
           type="button"
           onClick={() => setShowSample((v) => !v)}
           aria-expanded={showSample}
-          className="flex w-full items-center justify-between gap-4 p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+          className="flex min-h-11 w-full items-center justify-between gap-4 p-4 text-left sm:p-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
         >
           <span
             className="text-base font-bold"
@@ -205,17 +214,23 @@ export function PhoneDemo({
           </span>
         </button>
         {showSample && (
-          <div className="border-t px-5 pb-5 pt-4" style={{ borderColor: "var(--sys-border)" }}>
+          <div
+            className="border-t px-4 pb-4 pt-4 sm:px-5 sm:pb-5"
+            style={{ borderColor: "var(--sys-border)" }}
+          >
             <div className="grid gap-6 lg:grid-cols-[1fr_360px]">
               <div>
                 <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
                   <GuidedBadge />
-                  <span className="text-xs font-medium" style={{ color: "var(--sys-muted)" }}>
+                  <span
+                    className="text-[13px] sm:text-xs font-medium"
+                    style={{ color: "var(--sys-muted)" }}
+                  >
                     Turn {turnIndex + 1} of {PHONE_TURNS.length}
                   </span>
                 </div>
 
-                <Card className="p-5">
+                <Card className="p-4 sm:p-5">
                   <div
                     className="flex items-center gap-2 border-b pb-3"
                     style={{ borderColor: "var(--sys-border)" }}
@@ -233,27 +248,34 @@ export function PhoneDemo({
                       <div className="text-sm font-bold" style={{ color: "var(--sys-navy)" }}>
                         Inbound call
                       </div>
-                      <div className="text-[11px]" style={{ color: "var(--sys-muted)" }}>
+                      <div
+                        className="text-[13px] sm:text-[11px]"
+                        style={{ color: "var(--sys-muted)" }}
+                      >
                         Sample call flow
                       </div>
                     </div>
                   </div>
 
-                  <div className="space-y-3 py-4">
+                  <div
+                    className="max-h-[50dvh] space-y-3 overflow-y-auto overscroll-contain py-3 sm:max-h-none sm:overflow-visible sm:py-4"
+                    role="log"
+                    aria-label="Sample call transcript"
+                  >
                     {PHONE_TURNS.slice(0, turnIndex + 1).map((turn) => (
                       <div
                         key={turn.id}
                         className={`flex ${turn.speaker === "customer" ? "justify-start" : "justify-end"}`}
                       >
                         <div
-                          className="max-w-[85%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug"
+                          className="max-w-[90%] rounded-2xl sm:max-w-[85%] px-3.5 py-2.5 text-sm leading-snug"
                           style={{
                             backgroundColor:
                               turn.speaker === "customer" ? "#F1F5F9" : "var(--sys-blue)",
                             color: turn.speaker === "customer" ? "var(--sys-navy)" : "#fff",
                           }}
                         >
-                          <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wider opacity-70">
+                          <div className="mb-0.5 text-[13px] sm:text-[10px] font-bold uppercase tracking-wider opacity-70">
                             {turn.speaker === "customer" ? "Customer" : "Phone agent"}
                           </div>
                           {turn.text}
@@ -264,7 +286,7 @@ export function PhoneDemo({
 
                   <div className="border-t pt-3" style={{ borderColor: "var(--sys-border)" }}>
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                      <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                         {isLast
                           ? "Human handoff complete. No microphone used for this example."
                           : "Click through each turn to see the enquiry build up."}
@@ -274,7 +296,7 @@ export function PhoneDemo({
                           <button
                             type="button"
                             onClick={back}
-                            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                             style={{
                               border: "1px solid var(--sys-border)",
                               color: "var(--sys-navy)",
@@ -286,7 +308,7 @@ export function PhoneDemo({
                         <button
                           type="button"
                           onClick={reset}
-                          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                           style={{
                             border: "1px solid var(--sys-border)",
                             color: "var(--sys-navy)",
@@ -299,7 +321,7 @@ export function PhoneDemo({
                           <button
                             type="button"
                             onClick={advance}
-                            className="sys-gradient-fill inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-xs font-semibold transition-transform hover:scale-[1.03] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                            className="sys-gradient-fill inline-flex min-h-11 items-center gap-1.5 rounded-full px-4 py-1.5 text-[13px] sm:text-xs font-semibold transition-transform hover:scale-[1.03] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                           >
                             Next turn
                             <ArrowRight className="h-3 w-3" strokeWidth={2.4} />
@@ -310,7 +332,10 @@ export function PhoneDemo({
                   </div>
                 </Card>
 
-                <p className="mt-4 text-xs leading-relaxed" style={{ color: "var(--sys-muted)" }}>
+                <p
+                  className="mt-4 text-[13px] sm:text-xs leading-relaxed"
+                  style={{ color: "var(--sys-muted)" }}
+                >
                   Explore the example here. We can show the live phone agent on your call.
                 </p>
               </div>
@@ -337,7 +362,7 @@ export function BehindDemo() {
   const stage = BTS_STAGES.find((s) => s.id === activeId);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6 sm:space-y-8">
       {/* Real-screen walkthrough comes first. This replaces the old
           miniature recreated CRM preview so there is only one CRM
           representation on the page. */}
@@ -361,7 +386,7 @@ export function BehindDemo() {
           type="button"
           onClick={() => setShowWorkflow((v) => !v)}
           aria-expanded={showWorkflow}
-          className="flex w-full items-center justify-between gap-4 p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+          className="flex min-h-11 w-full items-center justify-between gap-4 p-4 text-left sm:p-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
         >
           <span
             className="text-base font-bold"
@@ -377,12 +402,15 @@ export function BehindDemo() {
           </span>
         </button>
         {showWorkflow && (
-          <div className="border-t px-5 pb-5 pt-4" style={{ borderColor: "var(--sys-border)" }}>
+          <div
+            className="border-t px-4 pb-4 pt-4 sm:px-5 sm:pb-5"
+            style={{ borderColor: "var(--sys-border)" }}
+          >
             <div className="mb-4 flex items-center gap-3">
               <GuidedBadge />
             </div>
             <div className="grid gap-6 lg:grid-cols-[300px_1fr]">
-              <div className="flex flex-row gap-2 overflow-x-auto pb-2 lg:flex-col lg:overflow-visible lg:pb-0">
+              <div className="-mx-4 flex snap-x flex-row gap-2 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:px-0 lg:flex-col lg:overflow-visible lg:pb-0">
                 {BTS_STAGES.map((s, i) => {
                   const active = s.id === activeId;
                   const done = BTS_STAGES.findIndex((x) => x.id === activeId) > i;
@@ -392,7 +420,7 @@ export function BehindDemo() {
                       type="button"
                       onClick={() => setActiveId(s.id)}
                       aria-pressed={active}
-                      className="group flex min-h-11 shrink-0 items-center gap-3 rounded-[14px] bg-white p-3 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50 lg:w-full"
+                      className="group flex min-h-11 shrink-0 snap-start items-center gap-3 rounded-[14px] bg-white p-3 text-left transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50 lg:w-full"
                       style={{
                         border: `1px solid ${active ? "var(--sys-blue)" : "var(--sys-border)"}`,
                         boxShadow: active
@@ -401,7 +429,7 @@ export function BehindDemo() {
                       }}
                     >
                       <span
-                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-xs font-bold transition-colors"
+                        className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] sm:text-xs font-bold transition-colors"
                         style={{
                           background:
                             active || done
@@ -413,7 +441,7 @@ export function BehindDemo() {
                         {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.6} /> : i + 1}
                       </span>
                       <span
-                        className="text-xs font-bold leading-tight"
+                        className="text-[13px] sm:text-xs font-bold leading-tight"
                         style={{
                           color: "var(--sys-navy)",
                           fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -428,7 +456,7 @@ export function BehindDemo() {
 
               <div className="space-y-4">
                 {stage && (
-                  <Card className="p-5">
+                  <Card className="p-4 sm:p-5">
                     <div className="flex items-start justify-between gap-3">
                       <div>
                         <h4
@@ -450,14 +478,14 @@ export function BehindDemo() {
                     </div>
 
                     <div
-                      className="mt-4 rounded-[14px] p-4"
+                      className="mt-4 rounded-[14px] p-3 sm:p-4"
                       style={{
                         backgroundColor: "rgba(30, 136, 229, 0.05)",
                         border: "1px solid var(--sys-border)",
                       }}
                     >
                       <div
-                        className="text-[10px] font-bold uppercase tracking-wider"
+                        className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
                         style={{ color: "var(--sys-blue-dark)" }}
                       >
                         What changes for you
@@ -504,7 +532,7 @@ function PreviewBlock({
 
   return (
     <div
-      className="rounded-[14px] bg-white p-4"
+      className="rounded-[14px] bg-white p-3 sm:p-4"
       style={{
         border: "1px solid var(--sys-border)",
         boxShadow: "0 2px 8px rgba(20, 33, 61, 0.04)",
@@ -518,13 +546,13 @@ function PreviewBlock({
           >
             <Icon className="h-3.5 w-3.5" strokeWidth={2} />
           </div>
-          <span className="text-xs font-bold" style={{ color: "var(--sys-navy)" }}>
+          <span className="text-[13px] sm:text-xs font-bold" style={{ color: "var(--sys-navy)" }}>
             {p.title}
           </span>
         </div>
         {p.awaitingApproval && (
           <span
-            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+            className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[13px] sm:text-[10px] font-bold"
             style={{
               backgroundColor: "rgba(245, 158, 11, 0.12)",
               color: "#92400E",
@@ -536,7 +564,10 @@ function PreviewBlock({
           </span>
         )}
       </div>
-      <p className="mt-2 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+      <p
+        className="mt-2 text-[13px] sm:text-xs leading-relaxed"
+        style={{ color: "var(--sys-body)" }}
+      >
         {p.body}
       </p>
     </div>

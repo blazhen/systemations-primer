@@ -12,6 +12,13 @@ import { useEffect, type ReactNode } from "react";
 import appCss from "../styles.css?url";
 import { reportVibeError } from "../lib/vibe-error-reporting";
 
+// Only the weights the pages use. display=swap keeps text visible while fonts load.
+const FONTS_HREF =
+  "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap";
+
+const FONT_SWAP_SCRIPT =
+  "(function(){var l=document.getElementById('sys-fonts');if(!l)return;function a(){l.media='all'}if(l.sheet){a()}else{l.addEventListener('load',a)}})();";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -76,14 +83,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   head: () => ({
     meta: [
       { charSet: "utf-8" },
-      { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "AI Studio App" },
-      { name: "description", content: "AI Studio Generated Project" },
-      { name: "author", content: "AI Studio" },
-      { property: "og:title", content: "AI Studio App" },
-      { property: "og:description", content: "AI Studio Generated Project" },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "viewport", content: "width=device-width, initial-scale=1, viewport-fit=cover" },
+      { title: "Systemations" },
+      {
+        name: "description",
+        content:
+          "Systemations builds AI operations systems that handle enquiries, follow-up and admin for small businesses.",
+      },
+      { name: "author", content: "Systemations" },
+      { name: "theme-color", content: "#fbfcff" },
+      { name: "color-scheme", content: "light" },
+      { name: "format-detection", content: "telephone=no" },
     ],
     links: [
       {
@@ -92,10 +102,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
-      {
-        rel: "stylesheet",
-        href: "https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Inter:wght@400;500;600&display=swap",
-      },
+      { rel: "preload", as: "style", href: FONTS_HREF },
     ],
   }),
   shellComponent: RootShell,
@@ -106,9 +113,21 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en-AU">
       <head>
         <HeadContent />
+        {/* Fonts load without blocking first paint: media="print" until the sheet arrives. */}
+        <link
+          id="sys-fonts"
+          rel="stylesheet"
+          href={FONTS_HREF}
+          media="print"
+          suppressHydrationWarning
+        />
+        <script dangerouslySetInnerHTML={{ __html: FONT_SWAP_SCRIPT }} />
+        <noscript>
+          <link rel="stylesheet" href={FONTS_HREF} />
+        </noscript>
       </head>
       <body>
         {children}

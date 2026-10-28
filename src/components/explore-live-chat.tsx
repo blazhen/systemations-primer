@@ -35,7 +35,7 @@ export function LiveChatWidget({
 
   if (!widget) {
     return (
-      <Card className="p-5">
+      <Card className="p-4 sm:p-5">
         <p className="text-sm leading-relaxed" style={{ color: "var(--sys-body)" }}>
           The live AI chat is being prepared. You can explore the guided examples below.
         </p>
@@ -55,7 +55,7 @@ export function LiveChatWidget({
   const setupMessage = hasBrief ? buildSetupMessage(brief!) : "";
 
   return (
-    <Card className="p-5">
+    <Card className="p-4 sm:p-5">
       <div
         className="mb-3 flex items-center gap-2 border-b pb-3"
         style={{ borderColor: "var(--sys-border)" }}
@@ -71,10 +71,10 @@ export function LiveChatWidget({
           >
             Chat with Erin
           </div>
-          <div className="text-[11px]" style={{ color: "var(--sys-muted)" }}>
+          <div className="text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
             {hasBrief ? "Personalised with your brief" : "AI demo assistant"}
           </div>
-          <div className="text-[11px]" style={{ color: "var(--sys-muted)" }}>
+          <div className="text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
             A short text preview, up to 8 AI replies
           </div>
         </div>
@@ -89,12 +89,15 @@ export function LiveChatWidget({
           }}
         >
           <div
-            className="mb-2 text-[10px] font-bold uppercase tracking-wider"
+            className="mb-2 text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
             style={{ color: "var(--sys-blue-dark)" }}
           >
             Two steps to start
           </div>
-          <ol className="space-y-1.5 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+          <ol
+            className="space-y-1.5 text-[13px] sm:text-xs leading-relaxed"
+            style={{ color: "var(--sys-body)" }}
+          >
             <li>
               <strong style={{ color: "var(--sys-navy)" }}>1.</strong> Copy your demo brief.
             </li>
@@ -110,16 +113,19 @@ export function LiveChatWidget({
               copiedLabel="Brief copied"
             />
           </div>
-          <p className="mt-2 text-[11px]" style={{ color: "var(--sys-muted)" }}>
+          <p className="mt-2 text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
             You paste the brief to apply it. The assistant uses only the details you provide.
           </p>
         </div>
       ) : (
         <>
-          <p className="mb-4 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+          <p
+            className="mb-4 text-[13px] sm:text-xs leading-relaxed"
+            style={{ color: "var(--sys-body)" }}
+          >
             Type your own questions. Use made-up details.
           </p>
-          <p className="mb-4 text-[11px]" style={{ color: "var(--sys-muted)" }}>
+          <p className="mb-4 text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
             AI demo · no real bookings
           </p>
         </>
@@ -133,7 +139,7 @@ export function LiveChatWidget({
           key={reloadKey}
           title="Live Systemations AI text demo"
           widget={widget}
-          className="h-[520px] sm:h-[620px]"
+          className="h-[min(460px,70dvh)] sm:h-[620px]"
           fallbackText="The live chat could not load right now. Try again, or see a sample chat instead."
         />
       </div>
@@ -142,7 +148,7 @@ export function LiveChatWidget({
         <button
           type="button"
           onClick={() => setReloadKey((k) => k + 1)}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
           style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
         >
           <RefreshCw className="h-3 w-3" strokeWidth={2} />
@@ -151,7 +157,7 @@ export function LiveChatWidget({
         <button
           type="button"
           onClick={onSwitchToGuided}
-          className="sys-gradient-fill inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+          className="sys-gradient-fill inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-[13px] sm:text-xs font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
         >
           See a sample chat instead
         </button>

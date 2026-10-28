@@ -13,7 +13,7 @@ import { Card } from "./explore-ui";
 function ActualScreensBadge() {
   return (
     <span
-      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
+      className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] sm:text-[11px] font-semibold"
       style={{
         backgroundColor: "rgba(30, 136, 229, 0.1)",
         border: "1px solid rgba(30, 136, 229, 0.2)",
@@ -144,7 +144,11 @@ export function ScreenshotViewer({
       {/* Selectable thumbnail / label choices. Only shown when more than one
           screen is available, so a single dashboard view stays focused. */}
       {availableScreens.length > 1 && (
-        <div role="group" aria-label="Choose a demo screen" className="grid grid-cols-3 gap-3">
+        <div
+          role="group"
+          aria-label="Choose a demo screen"
+          className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden"
+        >
           {availableScreens.map((s) => {
             const active = s.id === selectedId;
             return (
@@ -153,7 +157,7 @@ export function ScreenshotViewer({
                 type="button"
                 aria-pressed={active}
                 onClick={() => setSelectedId(s.id)}
-                className="group flex flex-col gap-2 rounded-[14px] bg-white p-3 text-left transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
+                className="group flex w-[77%] shrink-0 snap-start flex-col gap-2 rounded-[14px] bg-white p-2.5 text-left sm:w-auto sm:p-3 transition-all duration-200 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
                 style={{
                   border: `1px solid ${active ? "var(--sys-blue)" : "var(--sys-border)"}`,
                   boxShadow: active
@@ -168,12 +172,15 @@ export function ScreenshotViewer({
                   <img
                     src={s.url}
                     alt=""
+                    width={1512}
+                    height={770}
                     loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover object-top transition-transform duration-200 group-hover:scale-[1.03]"
                   />
                 </div>
                 <span
-                  className="text-xs font-bold leading-tight"
+                  className="text-[13px] sm:text-xs font-bold leading-tight"
                   style={{
                     color: active ? "var(--sys-blue-dark)" : "var(--sys-navy)",
                     fontFamily: "'Plus Jakarta Sans', sans-serif",
@@ -190,7 +197,7 @@ export function ScreenshotViewer({
       {/* Large screenshot with aspect ratio preserved */}
       <Card className="overflow-hidden p-0">
         <div
-          className="flex items-center justify-between gap-3 border-b px-5 py-3"
+          className="flex items-center justify-between gap-3 border-b px-4 py-2 sm:px-5 sm:py-3"
           style={{ borderColor: "var(--sys-border)" }}
         >
           <span
@@ -204,7 +211,7 @@ export function ScreenshotViewer({
             type="button"
             onClick={openLightbox}
             disabled={isFailed}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50 disabled:opacity-50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50 disabled:opacity-50"
             style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
           >
             <Maximize2 className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -212,7 +219,7 @@ export function ScreenshotViewer({
           </button>
         </div>
 
-        <div className="p-4">
+        <div className="p-3 sm:p-4">
           {isFailed ? (
             <div
               className="flex aspect-video w-full flex-col items-center justify-center gap-2 rounded-[14px] text-center"
@@ -224,7 +231,7 @@ export function ScreenshotViewer({
               <button
                 type="button"
                 onClick={() => setFailed((f) => ({ ...f, [selected.id]: false }))}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                 style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
               >
                 Try again
@@ -241,14 +248,20 @@ export function ScreenshotViewer({
                 ref={imgRef}
                 src={selected.url}
                 alt={selected.alt}
+                width={1512}
+                height={770}
                 loading="lazy"
+                decoding="async"
                 onError={() => setFailed((f) => ({ ...f, [selected.id]: true }))}
-                className="w-full rounded-[14px] object-contain"
+                className="h-auto w-full rounded-[14px] object-contain"
                 style={{ border: "1px solid var(--sys-border)" }}
               />
             </button>
           )}
-          <p className="mt-3 text-xs leading-relaxed" style={{ color: "var(--sys-muted)" }}>
+          <p
+            className="mt-3 text-[13px] sm:text-xs leading-relaxed"
+            style={{ color: "var(--sys-muted)" }}
+          >
             {selected.caption}
           </p>
         </div>
@@ -286,20 +299,17 @@ function Lightbox({
   return (
     <div
       ref={dialogRef}
-      className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6"
+      className="fixed inset-0 z-[200] flex items-stretch justify-center p-0 sm:items-center sm:p-6"
       role="dialog"
       aria-modal="true"
       aria-label={`${shot.label} screen, enlarged`}
     >
       <div
-        className="absolute inset-0"
-        style={{ backgroundColor: "rgba(7, 14, 27, 0.82)", backdropFilter: "blur(6px)" }}
+        className="absolute inset-0 sm:backdrop-blur-[6px]"
+        style={{ backgroundColor: "rgba(7, 14, 27, 0.82)" }}
         onClick={onClose}
       />
-      <div
-        className="relative flex max-h-full w-full max-w-[1100px] flex-col overflow-hidden rounded-[20px] bg-white"
-        style={{ boxShadow: "0 30px 70px -20px rgba(7, 14, 27, 0.6)" }}
-      >
+      <div className="relative flex h-full max-h-full w-full max-w-[1100px] flex-col overflow-hidden bg-white sm:h-auto sm:rounded-[20px] sm:shadow-[0_30px_70px_-20px_rgba(7,14,27,0.6)]">
         <div
           className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5"
           style={{ borderColor: "var(--sys-border)" }}
@@ -311,7 +321,7 @@ function Lightbox({
             >
               {shot.label}
             </h3>
-            <p className="truncate text-xs" style={{ color: "var(--sys-muted)" }}>
+            <p className="truncate text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
               Actual demo screen. Fictional sample data.
             </p>
           </div>
@@ -319,7 +329,7 @@ function Lightbox({
             <button
               type="button"
               onClick={onToggleSize}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               {fullSize ? (
@@ -338,7 +348,7 @@ function Lightbox({
               ref={closeRef}
               type="button"
               onClick={onClose}
-              className="inline-flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+              className="inline-flex h-11 min-w-11 items-center justify-center rounded-full text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-muted)" }}
               aria-label="Close enlarged screen"
             >
@@ -347,8 +357,8 @@ function Lightbox({
           </div>
         </div>
         <div
-          className="flex-1 overflow-auto"
-          style={{ backgroundColor: "#0B1322" }}
+          className="min-h-0 flex-1 overflow-auto overscroll-contain"
+          style={{ backgroundColor: "#0B1322", touchAction: "pan-x pan-y pinch-zoom" }}
           tabIndex={0}
           role="region"
           aria-label="Enlarged screen, scrollable"
@@ -356,6 +366,9 @@ function Lightbox({
           <img
             src={shot.url}
             alt={shot.alt}
+            width={1512}
+            height={770}
+            decoding="async"
             className="block"
             style={
               fullSize

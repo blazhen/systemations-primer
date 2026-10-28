@@ -4,6 +4,25 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* Metric-adjusted local fallbacks so text barely moves when the web fonts swap in.
+   Values approximate Arial against each font. */
+@font-face {
+  font-family: "Inter Fallback";
+  src: local("Arial");
+  size-adjust: 107%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Plus Jakarta Sans Fallback";
+  src: local("Arial");
+  size-adjust: 104%;
+  ascent-override: 98%;
+  descent-override: 25%;
+  line-gap-override: 0%;
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -73,6 +92,11 @@
   --sys-dark-ink: #070e1b;
   --sys-card-shadow: 0 10px 30px rgba(20, 33, 61, 0.07);
   --sys-btn-shadow: 0 16px 36px rgba(30, 136, 229, 0.22);
+  --sys-font-body:
+    "Inter", "Inter Fallback", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --sys-font-display:
+    "Plus Jakarta Sans", "Plus Jakarta Sans Fallback", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", sans-serif;
 }
 
 @layer base {
@@ -82,12 +106,63 @@
   body {
     background-color: var(--sys-bg);
     color: var(--sys-body);
-    font-family:
-      "Inter",
-      -apple-system,
-      BlinkMacSystemFont,
-      sans-serif;
+    font-family: var(--sys-font-body);
   }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior-x: none;
+  }
+  button,
+  [role="button"],
+  [role="tab"],
+  summary,
+  a {
+    touch-action: manipulation;
+  }
+}
+
+/* Skip link: hidden until focused by keyboard */
+.sys-skip-link {
+  position: fixed;
+  left: 0.75rem;
+  top: max(0.75rem, env(safe-area-inset-top));
+  z-index: 100;
+  transform: translateY(-200%);
+  border-radius: 9999px;
+  background-color: var(--sys-navy);
+  color: #ffffff;
+  padding: 0.75rem 1.25rem;
+  font-size: 14px;
+  font-weight: 600;
+}
+.sys-skip-link:focus {
+  transform: translateY(0);
+}
+main:focus {
+  outline: none;
+}
+
+/* Sticky header clears the notch / status bar and side cutouts */
+.sys-sticky-header {
+  position: sticky;
+  top: max(0.75rem, env(safe-area-inset-top));
+  padding-left: max(1rem, env(safe-area-inset-left));
+  padding-right: max(1rem, env(safe-area-inset-right));
+}
+@media (min-width: 640px) {
+  .sys-sticky-header {
+    padding-left: max(1.5rem, env(safe-area-inset-left));
+    padding-right: max(1.5rem, env(safe-area-inset-right));
+  }
+}
+
+/* Skip rendering large sections until they are near the screen. Height is a placeholder
+   estimate (--sys-cv) that the browser remembers once the section has been seen. */
+.sys-cv-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: auto var(--sys-cv, 800px);
 }
 
 /* Gradients and background patterns */
@@ -214,6 +289,29 @@
   border: 1px solid rgba(20, 167, 154, 0.2);
 }
 
+/* Phones: the demo cards become a sideways snap scroller of compact cards */
+@media (max-width: 639px) {
+  .sys-tab-scroller {
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+    scrollbar-width: none;
+    margin-inline: -1rem;
+    padding: 0.5rem 1rem 1.25rem;
+    scroll-padding-inline: 1rem;
+  }
+  .sys-tab-scroller::-webkit-scrollbar {
+    display: none;
+  }
+  .sys-tab-scroller .sys-demo-card {
+    flex: 0 0 150px;
+    scroll-snap-align: start;
+    min-height: 44px;
+    padding: 0.75rem;
+    gap: 0.5rem;
+  }
+}
+
 .sys-divider-fade {
   height: 1px;
   background: linear-gradient(90deg, transparent, #e3eaf3 20%, #e3eaf3 80%, transparent);
@@ -225,7 +323,7 @@
    Reduced motion now means gentler: fades and colour changes stay, large movement,
    parallax and loops go (see the block at the end of the motion layer). */
 html {
-  scroll-padding-top: 5rem;
+  scroll-padding-top: calc(5rem + env(safe-area-inset-top));
 }
 @media (prefers-reduced-motion: no-preference) {
   html {
@@ -553,6 +651,40 @@ html {
   animation: sys-blob-b 16s ease-in-out infinite;
 }
 
+/* Phones: no big blur filters or animated blobs. Soft radial gradients look the same and
+   cost almost nothing to paint. */
+@media (max-width: 767px) {
+  .sys-hero-blob {
+    filter: none;
+    opacity: 1;
+    animation: none;
+    will-change: auto;
+  }
+  .sys-hero-blob-a {
+    background: radial-gradient(circle, rgba(30, 136, 229, 0.3) 0%, transparent 62%);
+  }
+  .sys-hero-blob-b {
+    background: radial-gradient(circle, rgba(30, 106, 168, 0.22) 0%, transparent 62%);
+  }
+  .sys-hero-drift {
+    will-change: auto;
+  }
+  .sys-feed-glow > span {
+    filter: none;
+    animation: none;
+  }
+  .sys-feed-card {
+    backdrop-filter: none;
+  }
+}
+/* Touch screens: no scroll parallax */
+@media (pointer: coarse) {
+  .sys-hero-drift-a,
+  .sys-hero-drift-b {
+    transform: none;
+  }
+}
+
 /* Hero heading: words rise in sequence once mounted (the class is added after mount,
    so server HTML and no-JS show the plain heading). */
 .sys-word {
@@ -821,8 +953,8 @@ html {
 .sys-feed {
   position: relative;
   width: 100%;
-  height: 80px;
-  --step: 28px;
+  height: 92px;
+  --step: 32px;
   transition: opacity 0.5s ease;
 }
 .sys-feed[data-fading="true"] {
@@ -836,10 +968,10 @@ html {
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 24px;
+  height: 28px;
   padding: 0 10px;
   border-radius: 8px;
-  font-size: 10.5px;
+  font-size: 13px;
   text-align: left;
   color: rgba(255, 255, 255, 0.92);
   background: rgba(255, 255, 255, 0.08);
@@ -888,7 +1020,6 @@ html {
   .sys-feed-card {
     height: 38px;
     padding: 0 14px;
-    font-size: 13px;
     border-radius: 10px;
     gap: 10px;
   }

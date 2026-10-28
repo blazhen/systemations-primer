@@ -101,12 +101,13 @@ function toEditLines(j: SampleJob): EditLine[] {
 const money = (cents: number) => (cents / 100).toFixed(2);
 
 const primaryBtn =
-  "sys-gradient-fill inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100";
+  "sys-gradient-fill inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100";
 const ghostBtn =
-  "inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] bg-white px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50";
+  "inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] bg-white px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50";
 const inputCls =
-  "mt-1 min-h-[44px] w-full rounded-[10px] bg-white px-3 py-2 text-sm outline-none focus:ring-4 focus:ring-blue-300/30";
-const labelCls = "text-[10px] font-bold uppercase tracking-wider";
+  "mt-1 min-h-[44px] w-full rounded-[10px] bg-white px-3 py-2 text-base outline-none sm:text-sm focus:ring-4 focus:ring-blue-300/30";
+const labelCls =
+  "text-[13px] font-bold tracking-normal sm:text-[10px] sm:uppercase sm:tracking-wider";
 
 export function CustomerInvoicingDemo() {
   const [step, setStep] = useState<1 | 2 | 3 | 4>(1);
@@ -185,7 +186,7 @@ export function CustomerInvoicingDemo() {
   const totalsBlock = (
     <dl className="space-y-2 text-sm">
       <div className="flex items-center justify-between">
-        <dt className="text-xs font-medium" style={{ color: "var(--sys-muted)" }}>
+        <dt className="text-[13px] font-medium sm:text-xs" style={{ color: "var(--sys-muted)" }}>
           Subtotal (ex GST)
         </dt>
         <dd className="font-semibold" style={{ color: "var(--sys-navy)" }}>
@@ -193,7 +194,7 @@ export function CustomerInvoicingDemo() {
         </dd>
       </div>
       <div className="flex items-center justify-between">
-        <dt className="text-xs font-medium" style={{ color: "var(--sys-muted)" }}>
+        <dt className="text-[13px] font-medium sm:text-xs" style={{ color: "var(--sys-muted)" }}>
           GST (10%)
         </dt>
         <dd className="font-semibold" style={{ color: "var(--sys-navy)" }}>
@@ -204,7 +205,7 @@ export function CustomerInvoicingDemo() {
         className="flex items-center justify-between border-t pt-2"
         style={{ borderColor: "var(--sys-border)" }}
       >
-        <dt className="text-xs font-bold" style={{ color: "var(--sys-navy)" }}>
+        <dt className="text-[13px] font-bold sm:text-xs" style={{ color: "var(--sys-navy)" }}>
           Total
         </dt>
         <dd className="text-base font-bold" style={{ color: "var(--sys-green)" }}>
@@ -220,7 +221,7 @@ export function CustomerInvoicingDemo() {
 
       {/* Step 1: Pick a sample job */}
       {step === 1 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex items-center gap-3 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -233,7 +234,7 @@ export function CustomerInvoicingDemo() {
               >
                 Pick a sample job
               </h4>
-              <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+              <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                 Fictional jobs for {BUSINESS}
               </p>
             </div>
@@ -256,7 +257,10 @@ export function CustomerInvoicingDemo() {
                 >
                   <span className="min-w-0">
                     <span className="block font-semibold">{j.service}</span>
-                    <span className="block text-xs" style={{ color: "var(--sys-muted)" }}>
+                    <span
+                      className="block text-[13px] sm:text-xs"
+                      style={{ color: "var(--sys-muted)" }}
+                    >
                       {j.customer}, {j.suburb} · {j.ref}
                     </span>
                   </span>
@@ -277,7 +281,7 @@ export function CustomerInvoicingDemo() {
             <Pair label="Suburb" value={job.suburb} />
             <Pair label="Service" value={job.service} />
           </dl>
-          <div className="mt-5 flex justify-end">
+          <div className="mt-5 flex flex-col sm:flex-row sm:justify-end">
             <button type="button" onClick={() => setStep(2)} className={primaryBtn}>
               Continue
               <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
@@ -288,7 +292,7 @@ export function CustomerInvoicingDemo() {
 
       {/* Step 2: Edit lines */}
       {step === 2 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex flex-wrap items-center justify-between gap-2 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -305,7 +309,7 @@ export function CustomerInvoicingDemo() {
                 >
                   Edit sample draft
                 </h4>
-                <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                   {job.ref} · amounts are before GST
                 </p>
               </div>
@@ -420,7 +424,7 @@ export function CustomerInvoicingDemo() {
               type="button"
               onClick={addLine}
               disabled={lines.length >= MAX_LINES}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50 disabled:cursor-not-allowed disabled:opacity-50"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50 disabled:cursor-not-allowed disabled:opacity-50 max-sm:w-full max-sm:justify-center"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               <Plus className="h-3.5 w-3.5" strokeWidth={2.4} />
@@ -436,13 +440,17 @@ export function CustomerInvoicingDemo() {
             {totalsBlock}
           </div>
           {!allValid && (
-            <p className="mt-2 text-xs font-medium" style={{ color: "#92400E" }} role="alert">
+            <p
+              className="mt-2 text-[13px] font-medium sm:text-xs"
+              style={{ color: "#92400E" }}
+              role="alert"
+            >
               Check the highlighted fields: each line needs a description, a quantity above 0 (up to
               9999) and a unit price of 0 or more.
             </p>
           )}
 
-          <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => setStep(1)}
@@ -467,7 +475,7 @@ export function CustomerInvoicingDemo() {
 
       {/* Step 3: Approve */}
       {step === 3 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex flex-wrap items-center justify-between gap-2 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -484,7 +492,7 @@ export function CustomerInvoicingDemo() {
                 >
                   Approve the sample draft
                 </h4>
-                <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                   {job.ref} · {job.customer}
                 </p>
               </div>
@@ -504,14 +512,17 @@ export function CustomerInvoicingDemo() {
               border: "1px solid rgba(245, 158, 11, 0.15)",
             }}
           >
-            <p className="text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+            <p
+              className="text-[13px] leading-relaxed sm:text-xs"
+              style={{ color: "var(--sys-body)" }}
+            >
               <strong style={{ color: "var(--sys-navy)" }}>Example only.</strong> Approving here
               only changes what you see on this page. Nothing is sent to a customer and nothing is
               posted to any accounting software. In a real build, nothing goes out until a person
               approves it.
             </p>
           </div>
-          <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => setStep(2)}
@@ -531,7 +542,7 @@ export function CustomerInvoicingDemo() {
 
       {/* Step 4: Sent state (simulated) */}
       {step === 4 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex flex-wrap items-center justify-between gap-2 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -548,7 +559,7 @@ export function CustomerInvoicingDemo() {
                 >
                   Marked as sent (example)
                 </h4>
-                <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                   Side by side, sample data
                 </p>
               </div>
@@ -556,7 +567,7 @@ export function CustomerInvoicingDemo() {
             <button
               type="button"
               onClick={() => setEnlarged(true)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold transition-colors max-sm:w-full max-sm:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               <Maximize2 className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -571,12 +582,12 @@ export function CustomerInvoicingDemo() {
               style={{ border: "1px solid var(--sys-border)", backgroundColor: "#F8FAFC" }}
             >
               <div
-                className="text-[10px] font-bold uppercase tracking-wider"
+                className="text-[11px] font-bold uppercase tracking-wider"
                 style={{ color: "var(--sys-blue-dark)" }}
               >
                 Systemations record
               </div>
-              <dl className="mt-3 min-w-0 space-y-2 text-xs">
+              <dl className="mt-3 min-w-0 space-y-2 text-[13px] sm:text-xs">
                 <Pair label="Customer" value={job.customer} />
                 <Pair label="Business" value={BUSINESS} />
                 <Pair label="Reference" value={job.ref} />
@@ -609,7 +620,7 @@ export function CustomerInvoicingDemo() {
             {/* Concept sales invoice (right) */}
             <div className="min-w-0">
               <div
-                className="mb-1.5 text-[10px] font-bold uppercase tracking-wider"
+                className="mb-1.5 text-[11px] font-bold uppercase tracking-wider"
                 style={{ color: "var(--sys-violet-dark)" }}
               >
                 Example of the record in Xero
@@ -625,7 +636,10 @@ export function CustomerInvoicingDemo() {
               border: "1px solid rgba(245, 158, 11, 0.15)",
             }}
           >
-            <p className="text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+            <p
+              className="text-[13px] leading-relaxed sm:text-xs"
+              style={{ color: "var(--sys-body)" }}
+            >
               <strong style={{ color: "var(--sys-navy)" }}>Illustration only.</strong> The "sent"
               status is simulated in this page. No invoice was sent to anyone and nothing was posted
               to Xero or any other accounting software.
@@ -639,14 +653,17 @@ export function CustomerInvoicingDemo() {
               border: "1px solid var(--sys-border)",
             }}
           >
-            <p className="text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+            <p
+              className="text-[13px] leading-relaxed sm:text-xs"
+              style={{ color: "var(--sys-body)" }}
+            >
               In a real build, any link between Systemations and your accounting software is agreed,
               set up and tested for your business first. Scope and mapping are confirmed in your
               build. This is not a blanket two-way sync.
             </p>
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => setStep(3)}

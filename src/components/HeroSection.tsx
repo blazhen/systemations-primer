@@ -15,7 +15,7 @@ export function HeroSection() {
         <h1
           className="mt-6 text-balance text-[38px] font-bold tracking-[-0.02em] sm:text-[68px]"
           style={{
-            fontFamily: "'Plus Jakarta Sans', sans-serif",
+            fontFamily: "var(--sys-font-display)",
             lineHeight: 1.04,
             color: "var(--sys-navy)",
           }}

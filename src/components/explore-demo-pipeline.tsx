@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import {
   ArrowRightLeft,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Clock,
@@ -121,6 +122,19 @@ function useReducedMotion(): boolean {
   return reduced;
 }
 
+/** True under 640px. False on the server and first render, then updates. */
+function useIsPhone(): boolean {
+  const [phone, setPhone] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 639px)");
+    setPhone(mq.matches);
+    const onChange = () => setPhone(mq.matches);
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return phone;
+}
+
 /** Counts up to `target` over 600ms (ease-out). Instant when motion is reduced. */
 function useCountUp(target: number, reduced: boolean): number {
   const [value, setValue] = useState(target);
@@ -163,14 +177,14 @@ function StatTile({
   const shown = useCountUp(value, reduced);
   return (
     <div
-      className="min-w-0 rounded-[16px] bg-white px-4 py-3"
+      className="min-w-[150px] shrink-0 rounded-[16px] bg-white px-3 py-2 sm:min-w-0 sm:shrink sm:px-4 sm:py-3"
       style={{ border: "1px solid var(--sys-border)", boxShadow: "var(--sys-card-shadow)" }}
     >
-      <p className="text-xs font-semibold" style={{ color: "var(--sys-muted)" }}>
+      <p className="text-[13px] font-semibold sm:text-xs" style={{ color: "var(--sys-muted)" }}>
         {label}
       </p>
       <p
-        className="mt-0.5 text-xl font-bold tabular-nums"
+        className="mt-0.5 text-lg font-bold tabular-nums sm:text-xl"
         style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
       >
         {format(shown)}
@@ -193,6 +207,8 @@ function DealCard({
   flash,
   reduced,
   register,
+  compact,
+  enter,
 }: {
   contact: Contact;
   index: number;
@@ -204,6 +220,8 @@ function DealCard({
   flash: boolean;
   reduced: boolean;
   register: (id: string, el: HTMLElement | null) => void;
+  compact: boolean;
+  enter: boolean;
 }) {
   const { brief } = useBusinessBrief();
   const { chase, openContact } = useCrm();
@@ -232,6 +250,32 @@ function DealCard({
 
   const restBg = stuck ? "#FFFBEB" : "#fff";
   const company = contact.company.trim();
+  const daysChip = (
+    <span
+      className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] font-semibold sm:text-xs"
+      style={
+        stuck
+          ? {
+              backgroundColor: AMBER.bg,
+              color: AMBER.text,
+              border: `1px solid ${AMBER.border}`,
+            }
+          : {
+              backgroundColor: "rgba(20, 33, 61, 0.05)",
+              color: "var(--sys-body)",
+              border: "1px solid var(--sys-border)",
+            }
+      }
+    >
+      {stuck ? (
+        <span
+          aria-hidden="true"
+          className="h-1.5 w-1.5 rounded-full bg-amber-500 motion-safe:animate-pulse"
+        />
+      ) : null}
+      {stuck ? `Stuck ${daysText(contact.daysInStage)}` : daysText(contact.daysInStage)}
+    </span>
+  );
 
   return (
     <li
@@ -243,8 +287,8 @@ function DealCard({
         onDragStart(contact.id);
       }}
       onDragEnd={onDragEnd}
-      className={`sys-lift min-w-0 cursor-grab rounded-[16px] p-4 shadow-[0_2px_10px_rgba(20,33,61,0.08),0_1px_2px_rgba(20,33,61,0.05)] active:cursor-grabbing ${
-        flash && !reduced ? "sys-pop" : ""
+      className={`sys-lift min-w-0 cursor-grab rounded-[16px] px-3 py-2 sm:p-4 sm:shadow-[0_2px_10px_rgba(20,33,61,0.08),0_1px_2px_rgba(20,33,61,0.05)] active:cursor-grabbing ${
+        (flash || enter) && !reduced ? "sys-pop" : ""
       }`}
       style={{
         border: `1px solid ${stuck ? AMBER.border : "var(--sys-border)"}`,
@@ -261,158 +305,210 @@ function DealCard({
           : {}),
       }}
     >
-      <div className="flex flex-wrap items-center gap-2">
-        <span
-          className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold"
-          style={{
-            backgroundColor: `color-mix(in srgb, ${colour} 12%, white)`,
-            border: `1px solid color-mix(in srgb, ${colour} 35%, white)`,
-            color: "var(--sys-navy)",
-          }}
-        >
-          <span
-            aria-hidden="true"
-            className="h-2 w-2 rounded-full"
-            style={{ backgroundColor: colour }}
-          />
-          {stageLabel(contact.stage, brief)}
-        </span>
-        <span
-          className="ml-auto inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-semibold"
-          style={
-            stuck
-              ? {
-                  backgroundColor: AMBER.bg,
-                  color: AMBER.text,
-                  border: `1px solid ${AMBER.border}`,
-                }
-              : {
-                  backgroundColor: "rgba(20, 33, 61, 0.05)",
-                  color: "var(--sys-body)",
-                  border: "1px solid var(--sys-border)",
-                }
-          }
-        >
-          {stuck ? (
-            <span
-              aria-hidden="true"
-              className="h-1.5 w-1.5 rounded-full bg-amber-500 motion-safe:animate-pulse"
-            />
-          ) : null}
-          {stuck ? `Stuck ${daysText(contact.daysInStage)}` : daysText(contact.daysInStage)}
-        </span>
-      </div>
-
-      <button
-        type="button"
-        onClick={() => openContact(contact.id)}
-        title={`Open ${contact.name}`}
-        className={`mt-3 block min-h-8 w-full truncate rounded-[6px] text-left text-base font-semibold leading-snug hover:underline ${FOCUS}`}
-        style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
-      >
-        {contact.name}
-      </button>
-      {company ? (
-        <p className="truncate text-sm font-medium" style={{ color: "var(--sys-body)" }}>
-          {company}
-        </p>
-      ) : null}
-      <p className="truncate text-sm" style={{ color: "var(--sys-muted)" }}>
-        {jobLabel(contact, index, brief)}
-      </p>
-
-      <div className="mt-3 flex items-center gap-3">
-        <span
-          className="text-xl font-bold tabular-nums"
-          style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
-        >
-          {formatMoney(contact.value)}
-        </span>
-        <span className="ml-auto flex min-w-0 items-center gap-2">
-          <span
-            aria-hidden="true"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
-            style={{ backgroundColor: ownerColour(contact.owner) }}
-          >
-            {initials(contact.owner)}
-          </span>
-          <span className="sr-only">Owner: </span>
-          <span
-            className="min-w-0 truncate text-sm font-medium"
-            style={{ color: "var(--sys-body)" }}
-          >
-            {contact.owner}
-          </span>
-        </span>
-      </div>
-
-      <div className="mt-3">
-        <p
-          className="flex items-center gap-1.5 text-[13px] font-medium"
-          style={{ color: stuck ? AMBER.text : "var(--sys-muted)" }}
-        >
-          <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-          <span className="min-w-0 truncate">{nextStep(contact)}</span>
-        </p>
-        <div
-          aria-hidden="true"
-          className="mt-2 h-1 overflow-hidden rounded-full"
-          style={{ backgroundColor: "rgba(20, 33, 61, 0.07)" }}
-        >
-          <div
-            className="h-full w-full origin-left rounded-full"
-            style={{
-              backgroundColor: stuck ? "#F59E0B" : colour,
-              transform: `scaleX(${stageProgress(contact.stage)})`,
-            }}
-          />
-        </div>
-      </div>
-
-      {stuck ? (
-        <div className="mt-3">
-          {awaiting ? (
-            <div className="flex flex-wrap items-center gap-x-2">
-              <span className="text-xs font-semibold" style={{ color: AMBER.text }}>
-                Awaiting your approval
-              </span>
-              <button
-                type="button"
-                onClick={() => openContact(contact.id)}
-                className={`sys-crm-motion inline-flex min-h-11 items-center whitespace-nowrap rounded-[10px] px-1 text-sm font-semibold underline underline-offset-2 hover:opacity-80 ${FOCUS}`}
-                style={{ color: AMBER.text }}
-              >
-                Review draft
-              </button>
-            </div>
-          ) : (
+      {compact ? (
+        <>
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => chase(contact.id)}
-              className={`sys-crm-motion inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-[12px] px-4 text-sm font-bold hover:opacity-90 active:scale-[0.98] ${FOCUS}`}
-              style={{ backgroundColor: "#F59E0B", color: "#451A03" }}
+              onClick={() => openContact(contact.id)}
+              title={`Open ${contact.name}`}
+              className={`block min-h-11 min-w-0 flex-1 truncate rounded-[6px] text-left text-base font-semibold leading-snug ${FOCUS}`}
+              style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
             >
-              Chase
+              {contact.name}
             </button>
-          )}
-        </div>
-      ) : null}
+            <span
+              className="shrink-0 text-base font-bold tabular-nums"
+              style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+            >
+              {formatMoney(contact.value)}
+            </span>
+          </div>
+          <div className="flex items-center gap-2 text-[13px]">
+            <p className="min-w-0 flex-1 truncate" style={{ color: "var(--sys-muted)" }}>
+              {jobLabel(contact, index, brief)}
+            </p>
+            <span className="sr-only">Owner: </span>
+            <span
+              className="max-w-[45%] shrink-0 truncate font-medium"
+              style={{ color: "var(--sys-body)" }}
+            >
+              {contact.owner}
+            </span>
+          </div>
+          {stuck ? (
+            <div className="mt-2">
+              {awaiting ? (
+                <button
+                  type="button"
+                  onClick={() => openContact(contact.id)}
+                  className={`sys-crm-motion inline-flex min-h-11 items-center whitespace-nowrap rounded-[10px] px-1 text-[13px] font-semibold underline underline-offset-2 ${FOCUS}`}
+                  style={{ color: AMBER.text }}
+                >
+                  Awaiting your approval: review draft
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => chase(contact.id)}
+                  className={`sys-crm-motion inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-[12px] px-4 text-sm font-bold active:scale-[0.98] ${FOCUS}`}
+                  style={{ backgroundColor: "#F59E0B", color: "#451A03" }}
+                >
+                  Chase
+                </button>
+              )}
+            </div>
+          ) : null}
+          <div className="mt-1 flex items-center gap-2">
+            {daysChip}
+            <button
+              ref={moveBtn}
+              type="button"
+              data-move-btn={contact.id}
+              aria-expanded={moving}
+              aria-label={`Move ${contact.name} to another stage`}
+              onClick={() => setMoving((v) => !v)}
+              className={`sys-crm-motion ml-auto inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-4 text-sm font-semibold active:scale-[0.98] ${FOCUS}`}
+              style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
+            >
+              <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
+              Move
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-center gap-2">
+            <span
+              className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold"
+              style={{
+                backgroundColor: `color-mix(in srgb, ${colour} 12%, white)`,
+                border: `1px solid color-mix(in srgb, ${colour} 35%, white)`,
+                color: "var(--sys-navy)",
+              }}
+            >
+              <span
+                aria-hidden="true"
+                className="h-2 w-2 rounded-full"
+                style={{ backgroundColor: colour }}
+              />
+              {stageLabel(contact.stage, brief)}
+            </span>
+            <span className="ml-auto">{daysChip}</span>
+          </div>
 
-      <div className="mt-3 flex items-center">
-        <button
-          ref={moveBtn}
-          type="button"
-          data-move-btn={contact.id}
-          aria-expanded={moving}
-          aria-label={`Move ${contact.name} to another stage`}
-          onClick={() => setMoving((v) => !v)}
-          className={`sys-crm-motion inline-flex min-h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-4 text-sm font-semibold hover:bg-slate-50 active:scale-[0.98] ${FOCUS}`}
-          style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
-        >
-          <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
-          Move
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={() => openContact(contact.id)}
+            title={`Open ${contact.name}`}
+            className={`mt-3 block min-h-8 w-full truncate rounded-[6px] text-left text-base font-semibold leading-snug hover:underline ${FOCUS}`}
+            style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+          >
+            {contact.name}
+          </button>
+          {company ? (
+            <p className="truncate text-sm font-medium" style={{ color: "var(--sys-body)" }}>
+              {company}
+            </p>
+          ) : null}
+          <p className="truncate text-sm" style={{ color: "var(--sys-muted)" }}>
+            {jobLabel(contact, index, brief)}
+          </p>
+
+          <div className="mt-3 flex items-center gap-3">
+            <span
+              className="text-xl font-bold tabular-nums"
+              style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+            >
+              {formatMoney(contact.value)}
+            </span>
+            <span className="ml-auto flex min-w-0 items-center gap-2">
+              <span
+                aria-hidden="true"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ backgroundColor: ownerColour(contact.owner) }}
+              >
+                {initials(contact.owner)}
+              </span>
+              <span className="sr-only">Owner: </span>
+              <span
+                className="min-w-0 truncate text-sm font-medium"
+                style={{ color: "var(--sys-body)" }}
+              >
+                {contact.owner}
+              </span>
+            </span>
+          </div>
+
+          <div className="mt-3">
+            <p
+              className="flex items-center gap-1.5 text-[13px] font-medium"
+              style={{ color: stuck ? AMBER.text : "var(--sys-muted)" }}
+            >
+              <Clock className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+              <span className="min-w-0 truncate">{nextStep(contact)}</span>
+            </p>
+            <div
+              aria-hidden="true"
+              className="mt-2 h-1 overflow-hidden rounded-full"
+              style={{ backgroundColor: "rgba(20, 33, 61, 0.07)" }}
+            >
+              <div
+                className="h-full w-full origin-left rounded-full"
+                style={{
+                  backgroundColor: stuck ? "#F59E0B" : colour,
+                  transform: `scaleX(${stageProgress(contact.stage)})`,
+                }}
+              />
+            </div>
+          </div>
+
+          {stuck ? (
+            <div className="mt-3">
+              {awaiting ? (
+                <div className="flex flex-wrap items-center gap-x-2">
+                  <span className="text-xs font-semibold" style={{ color: AMBER.text }}>
+                    Awaiting your approval
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => openContact(contact.id)}
+                    className={`sys-crm-motion inline-flex min-h-11 items-center whitespace-nowrap rounded-[10px] px-1 text-sm font-semibold underline underline-offset-2 hover:opacity-80 ${FOCUS}`}
+                    style={{ color: AMBER.text }}
+                  >
+                    Review draft
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => chase(contact.id)}
+                  className={`sys-crm-motion inline-flex min-h-11 w-full items-center justify-center whitespace-nowrap rounded-[12px] px-4 text-sm font-bold hover:opacity-90 active:scale-[0.98] ${FOCUS}`}
+                  style={{ backgroundColor: "#F59E0B", color: "#451A03" }}
+                >
+                  Chase
+                </button>
+              )}
+            </div>
+          ) : null}
+
+          <div className="mt-3 flex items-center">
+            <button
+              ref={moveBtn}
+              type="button"
+              data-move-btn={contact.id}
+              aria-expanded={moving}
+              aria-label={`Move ${contact.name} to another stage`}
+              onClick={() => setMoving((v) => !v)}
+              className={`sys-crm-motion inline-flex min-h-11 w-full items-center justify-center gap-2 whitespace-nowrap rounded-[12px] px-4 text-sm font-semibold hover:bg-slate-50 active:scale-[0.98] ${FOCUS}`}
+              style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
+            >
+              <ArrowRightLeft className="h-4 w-4" aria-hidden="true" />
+              Move
+            </button>
+          </div>
+        </>
+      )}
 
       {moving ? (
         <div
@@ -607,6 +703,7 @@ function StageAutomations() {
 // ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
+const PHONE_VISIBLE = 2;
 const CLOSED: StageId[] = ["won", "lost"];
 const HINT_STAGES: StageId[] = ["new", "contacted", "quote", "following"];
 
@@ -614,6 +711,10 @@ export function PipelineDemo() {
   const { brief } = useBusinessBrief();
   const { contacts, move, reset, atRisk } = useCrm();
   const reduced = useReducedMotion();
+  const isPhone = useIsPhone();
+  const [openStages, setOpenStages] = useState<StageId[]>([]);
+  const chipBar = useRef<HTMLDivElement>(null);
+  const chipEls = useRef<Record<string, HTMLButtonElement | null>>({});
   const [dragId, setDragId] = useState<string | null>(null);
   const [overStage, setOverStage] = useState<StageId | null>(null);
   const [last, setLast] = useState<{ name: string; stage: StageId } | null>(null);
@@ -675,9 +776,18 @@ export function PipelineDemo() {
 
   useEffect(() => {
     updateScroll();
-    window.addEventListener("resize", updateScroll);
+    window.addEventListener("resize", updateScroll, { passive: true });
     return () => window.removeEventListener("resize", updateScroll);
   }, [updateScroll]);
+
+  // Keep the active stage chip in view inside the chip bar (bar only, never the page).
+  useEffect(() => {
+    const bar = chipBar.current;
+    const chip = chipEls.current[STAGES[activeIdx]?.id ?? ""];
+    if (!bar || !chip) return;
+    const target = chip.offsetLeft - (bar.clientWidth - chip.offsetWidth) / 2;
+    bar.scrollTo({ left: Math.max(0, target), behavior: reduced ? "auto" : "smooth" });
+  }, [activeIdx, reduced]);
 
   useEffect(() => {
     if (!flashId) return;
@@ -715,15 +825,19 @@ export function PipelineDemo() {
       if (!c || c.stage === to) return;
       if (!reduced) {
         const snap = new Map<string, DOMRect>();
-        cardEls.current.forEach((el, key) => snap.set(key, el.getBoundingClientRect()));
+        // On phones only the moved card animates; every other card just re-flows.
+        cardEls.current.forEach((el, key) => {
+          if (!isPhone || key === id) snap.set(key, el.getBoundingClientRect());
+        });
         flipFrom.current = snap;
       }
+      if (isPhone) setOpenStages((s) => (s.includes(to) ? s : [...s, to]));
       move(id, to, by);
       setLast({ name: c.name, stage: to });
       setMovedId(by === "button" ? id : null);
       setFlashId(id);
     },
-    [contacts, move, reduced],
+    [contacts, move, reduced, isPhone],
   );
 
   const latest = useRef({ contacts, doMove });
@@ -894,7 +1008,7 @@ export function PipelineDemo() {
             <p className="text-sm font-semibold">Nothing is stuck. Every deal is moving.</p>
           )}
         </div>
-        <div className="grid grid-cols-1 gap-3 min-[420px]:grid-cols-3 md:col-span-2 lg:col-span-3">
+        <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-3 sm:gap-3 sm:overflow-visible sm:pb-0 md:col-span-2 lg:col-span-3">
           <StatTile
             label="Open deals value"
             value={stats.openValue}
@@ -928,6 +1042,7 @@ export function PipelineDemo() {
       >
         {/* Stage map */}
         <div
+          ref={chipBar}
           role="group"
           aria-label="Stage map. Choose a stage to scroll to it."
           className="sticky top-2 z-20 mb-3 flex gap-2 overflow-x-auto rounded-[16px] p-2"
@@ -944,8 +1059,11 @@ export function PipelineDemo() {
             return (
               <button
                 key={s.id}
+                ref={(el) => {
+                  chipEls.current[s.id] = el;
+                }}
                 type="button"
-                aria-label={`Go to ${label}, ${n} ${n === 1 ? "deal" : "deals"}`}
+                aria-label={`Go to ${label},${n} ${n === 1 ? "deal" : "deals"}`}
                 aria-current={on ? "true" : undefined}
                 onClick={() => scrollToStage(s.id)}
                 className={`sys-crm-motion flex min-h-11 min-w-[112px] flex-1 shrink-0 flex-col justify-center rounded-[12px] px-3 py-1.5 text-left active:scale-[0.98] ${FOCUS}`}
@@ -1034,7 +1152,7 @@ export function PipelineDemo() {
             ref={scroller}
             onScroll={updateScroll}
             onDragOver={onBoardDragOver}
-            className={`relative flex gap-4 overflow-x-auto px-1 pb-4 pt-1 ${FOCUS}`}
+            className={`relative flex items-start gap-3 overflow-x-auto px-1 pb-4 pt-1 sm:items-stretch sm:gap-4 ${FOCUS}`}
             role="region"
             aria-label="Pipeline board, scrolls sideways"
             tabIndex={0}
@@ -1048,6 +1166,8 @@ export function PipelineDemo() {
               const total = list.reduce((n, c) => n + c.value, 0);
               const over = overStage === s.id && dragId !== null;
               const label = stageLabel(s.id, brief);
+              const collapsible = isPhone && list.length > PHONE_VISIBLE;
+              const isOpen = openStages.includes(s.id);
               return (
                 <section
                   key={s.id}
@@ -1067,7 +1187,7 @@ export function PipelineDemo() {
                       setOverStage(null);
                   }}
                   onDrop={(e) => onDrop(e, s.id)}
-                  className="flex min-h-[320px] w-[85vw] min-w-0 shrink-0 snap-start flex-col rounded-[16px] p-3 sm:w-[290px]"
+                  className="flex w-[85vw] min-w-0 shrink-0 snap-start flex-col rounded-[16px] p-3 sm:min-h-[320px] sm:w-[290px]"
                   style={{
                     backgroundColor: over ? "rgba(30, 136, 229, 0.08)" : "rgba(20, 33, 61, 0.035)",
                     outline: over ? "2px solid var(--sys-blue)" : "2px solid transparent",
@@ -1116,28 +1236,33 @@ export function PipelineDemo() {
                       Drop to move to {label}
                     </p>
                   ) : null}
-                  <ul className="flex flex-1 flex-col gap-3">
-                    {list.map((c) => (
-                      <DealCard
-                        key={c.id}
-                        contact={c}
-                        index={contacts.indexOf(c)}
-                        isDragging={dragId === c.id}
-                        onDragStart={setDragId}
-                        onDragEnd={() => {
-                          setDragId(null);
-                          setOverStage(null);
-                        }}
-                        onMove={(id, to) => doMove(id, to, "button")}
-                        refocusKey={movedId === c.id ? 1 : 0}
-                        flash={flashId === c.id}
-                        reduced={reduced}
-                        register={register}
-                      />
-                    ))}
+                  <ul className="flex flex-1 flex-col gap-2 sm:gap-3">
+                    {list.map((c, n) => {
+                      if (collapsible && n >= PHONE_VISIBLE && !isOpen) return null;
+                      return (
+                        <DealCard
+                          key={c.id}
+                          contact={c}
+                          index={contacts.indexOf(c)}
+                          isDragging={dragId === c.id}
+                          onDragStart={setDragId}
+                          onDragEnd={() => {
+                            setDragId(null);
+                            setOverStage(null);
+                          }}
+                          onMove={(id, to) => doMove(id, to, "button")}
+                          refocusKey={movedId === c.id ? 1 : 0}
+                          flash={flashId === c.id}
+                          reduced={reduced}
+                          register={register}
+                          compact={isPhone}
+                          enter={collapsible && n >= PHONE_VISIBLE}
+                        />
+                      );
+                    })}
                     {list.length === 0 ? (
                       <li
-                        className="flex flex-1 items-center justify-center rounded-[16px] px-3 py-10 text-center text-sm"
+                        className="flex h-16 items-center justify-center rounded-[16px] px-3 text-center text-sm sm:h-auto sm:flex-1 sm:py-10"
                         style={{
                           border: "1px dashed var(--sys-border)",
                           color: "var(--sys-muted)",
@@ -1147,6 +1272,25 @@ export function PipelineDemo() {
                       </li>
                     ) : null}
                   </ul>
+                  {collapsible ? (
+                    <button
+                      type="button"
+                      aria-expanded={isOpen}
+                      onClick={() =>
+                        setOpenStages((o) =>
+                          o.includes(s.id) ? o.filter((x) => x !== s.id) : [...o, s.id],
+                        )
+                      }
+                      className={`sys-crm-motion mt-2 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-[12px] bg-white px-4 text-sm font-semibold active:scale-[0.98] ${FOCUS}`}
+                      style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
+                    >
+                      <ChevronDown
+                        className={`h-4 w-4 ${isOpen ? "rotate-180" : ""}`}
+                        aria-hidden="true"
+                      />
+                      {isOpen ? "Show less" : `View ${list.length - PHONE_VISIBLE} more`}
+                    </button>
+                  ) : null}
                 </section>
               );
             })}

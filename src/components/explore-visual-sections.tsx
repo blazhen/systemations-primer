@@ -98,6 +98,228 @@ const STATS = [
   },
 ];
 
+const MARQUEE_S = 35;
+const STAT_NUM_SIZE = "clamp(40px, 12vw, 56px)";
+const STAT_BADGE = {
+  background: "linear-gradient(145deg, #ffffff, #f1f6fb)",
+  border: "1px solid var(--sys-border)",
+  boxShadow: "0 6px 16px rgba(20, 33, 61, 0.08), 0 1px 2px rgba(20,33,61,0.05)",
+};
+
+const STATS_CSS = `
+@keyframes sys-stat-marquee { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+.sys-stat-track { animation: sys-stat-marquee ${MARQUEE_S}s linear infinite; will-change: transform; }
+.sys-stat-view { scrollbar-width: none; }
+.sys-stat-view::-webkit-scrollbar { display: none; }
+.sys-stat-view[data-manual="true"] { scroll-snap-type: x proximity; }
+@media (prefers-reduced-motion: reduce) {
+  .sys-stat-track { animation: none; will-change: auto; }
+  .sys-stat-view { scroll-snap-type: x mandatory; }
+  .sys-stat-dup { display: none; }
+}
+`;
+
+// The qualifier, number and unit sit on one baseline so they read as one figure.
+function StatNumber({ s, animated }: { s: (typeof STATS)[number]; animated: boolean }) {
+  return (
+    <p
+      className="flex items-baseline justify-center gap-1.5 tabular-nums"
+      style={{ fontFamily: HEADING_FONT }}
+    >
+      <span className="text-[15px] font-medium" style={{ color: "var(--sys-muted)" }}>
+        {s.lead}
+      </span>
+      <span
+        className="font-bold leading-none tracking-[-0.03em]"
+        style={{ fontSize: STAT_NUM_SIZE, color: "var(--sys-navy)" }}
+      >
+        {animated ? <CountUp value={s.value} duration={1400} /> : s.value}
+      </span>
+      {s.suffix ? (
+        <span className="text-[24px] font-bold" style={{ color: "var(--sys-navy)" }}>
+          {s.suffix}
+        </span>
+      ) : null}
+    </p>
+  );
+}
+
+function StatCardsMobile({ hidden }: { hidden?: boolean }) {
+  return (
+    <div
+      className={`flex ${hidden ? "sys-stat-dup" : ""}`}
+      role={hidden ? undefined : "list"}
+      aria-hidden={hidden ? true : undefined}
+    >
+      {STATS.map((s) => {
+        const Icon = s.icon;
+        return (
+          <div
+            key={s.caption}
+            role={hidden ? undefined : "listitem"}
+            className="mr-4 flex w-[220px] shrink-0 snap-start flex-col items-center rounded-2xl px-4 py-5 text-center"
+            style={{
+              background: "linear-gradient(180deg, #ffffff, #f4f8fc)",
+              border: "1px solid var(--sys-border)",
+              boxShadow: "var(--sys-card-shadow)",
+            }}
+          >
+            <div
+              className="flex h-12 w-12 items-center justify-center rounded-full"
+              style={{ color: s.color, ...STAT_BADGE }}
+              aria-hidden="true"
+            >
+              <Icon className="h-6 w-6" strokeWidth={1.8} />
+            </div>
+            <div className="mt-3">
+              <StatNumber s={s} animated={false} />
+            </div>
+            <p
+              className="mt-2 min-h-[44px] text-[15px] leading-snug"
+              style={{ color: "var(--sys-body)" }}
+            >
+              {s.caption}
+            </p>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// Phones: a slow auto-scrolling track (CSS transform) that hands over to native
+// swipe scrolling on touch, and picks the loop up again 2s after the last touch.
+function StatsMarquee() {
+  const viewRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const view = viewRef.current;
+    const track = trackRef.current;
+    if (!view || !track) return;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+    let manual = false;
+    let down = false;
+    let onScreen = true;
+    let tabOk = !document.hidden;
+    let held = false;
+    let timer = 0;
+
+    const apply = () => {
+      track.style.animationPlayState = onScreen && tabOk && !held ? "running" : "paused";
+    };
+    const resume = () => {
+      if (!manual || down) return;
+      const h = track.offsetWidth / 2;
+      const off = h > 0 ? ((view.scrollLeft % h) + h) % h : 0;
+      view.removeAttribute("data-manual");
+      view.scrollLeft = 0;
+      track.style.animation = "";
+      track.style.animationDelay = h > 0 ? `-${(off / h) * MARQUEE_S}s` : "0s";
+      manual = false;
+      apply();
+    };
+    const schedule = () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(resume, 2000);
+    };
+    const enterManual = () => {
+      window.clearTimeout(timer);
+      if (manual) return;
+      manual = true;
+      const x = -new DOMMatrix(getComputedStyle(track).transform).m41;
+      track.style.animation = "none";
+      view.scrollLeft = Math.max(0, x);
+      view.setAttribute("data-manual", "true");
+    };
+
+    const onDown = (e: PointerEvent) => {
+      if (e.pointerType === "mouse") return;
+      down = true;
+      enterManual();
+    };
+    const onUp = () => {
+      down = false;
+      if (manual) schedule();
+    };
+    const onScroll = () => {
+      if (manual) schedule();
+    };
+    const onEnter = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse") return;
+      held = true;
+      apply();
+    };
+    const onLeave = () => {
+      held = false;
+      apply();
+    };
+    const onFocusIn = () => {
+      held = true;
+      apply();
+    };
+    const onVis = () => {
+      tabOk = !document.hidden;
+      apply();
+    };
+
+    const opt = { passive: true } as const;
+    view.addEventListener("pointerdown", onDown, opt);
+    view.addEventListener("pointerup", onUp, opt);
+    view.addEventListener("pointercancel", onUp, opt);
+    view.addEventListener("scroll", onScroll, opt);
+    view.addEventListener("pointerenter", onEnter, opt);
+    view.addEventListener("pointerleave", onLeave, opt);
+    view.addEventListener("focusin", onFocusIn, opt);
+    view.addEventListener("focusout", onLeave, opt);
+    document.addEventListener("visibilitychange", onVis);
+    const io =
+      typeof IntersectionObserver === "undefined"
+        ? null
+        : new IntersectionObserver(
+            (entries) => {
+              onScreen = entries.some((e) => e.isIntersecting);
+              apply();
+            },
+            { threshold: 0.05 },
+          );
+    io?.observe(view);
+    apply();
+
+    return () => {
+      window.clearTimeout(timer);
+      io?.disconnect();
+      view.removeEventListener("pointerdown", onDown);
+      view.removeEventListener("pointerup", onUp);
+      view.removeEventListener("pointercancel", onUp);
+      view.removeEventListener("scroll", onScroll);
+      view.removeEventListener("pointerenter", onEnter);
+      view.removeEventListener("pointerleave", onLeave);
+      view.removeEventListener("focusin", onFocusIn);
+      view.removeEventListener("focusout", onLeave);
+      document.removeEventListener("visibilitychange", onVis);
+    };
+  }, []);
+
+  return (
+    <div
+      ref={viewRef}
+      className="sys-stat-view overflow-x-auto px-4 pb-6 pt-2 md:hidden"
+      style={{
+        scrollPaddingLeft: 16,
+        WebkitMaskImage: "linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent)",
+        maskImage: "linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent)",
+      }}
+    >
+      <div ref={trackRef} className="sys-stat-track flex w-max">
+        <StatCardsMobile />
+        <StatCardsMobile hidden />
+      </div>
+    </div>
+  );
+}
+
 export function StatsStrip() {
   const ref = useRef<HTMLElement>(null);
   const phase = usePlayOnce(ref, 0.4);
@@ -105,25 +327,25 @@ export function StatsStrip() {
   const play = phase === "play";
 
   return (
-    <section ref={ref} className="bg-white px-4 py-10 sm:px-6 sm:py-14">
+    <section ref={ref} className="bg-white py-8 md:px-6 md:py-14">
+      <style>{STATS_CSS}</style>
       <h2 className="sr-only">Systemations at a glance</h2>
+      <StatsMarquee />
       <div className="mx-auto max-w-[1120px]">
-        <Reveal stagger className="grid gap-8 sm:grid-cols-3 sm:gap-0">
+        <Reveal stagger className="hidden md:grid md:grid-cols-3">
           {STATS.map((s, i) => {
             const Icon = s.icon;
             return (
               <div
                 key={s.caption}
-                className={`flex flex-col items-center px-4 text-center ${i > 0 ? "sm:border-l" : ""}`}
+                className={`flex flex-col items-center px-4 text-center ${i > 0 ? "border-l" : ""}`}
                 style={{ borderColor: "var(--sys-border)" }}
               >
                 <div
                   className="flex h-12 w-12 items-center justify-center rounded-full"
                   style={{
                     color: s.color,
-                    background: "linear-gradient(145deg, #ffffff, #f1f6fb)",
-                    border: "1px solid var(--sys-border)",
-                    boxShadow: "0 6px 16px rgba(20, 33, 61, 0.08), 0 1px 2px rgba(20,33,61,0.05)",
+                    ...STAT_BADGE,
                     transform: armed ? "scale(0.5) rotate(-24deg)" : "none",
                     opacity: armed ? 0 : 1,
                     transition: play
@@ -134,15 +356,9 @@ export function StatsStrip() {
                 >
                   <Icon className="h-6 w-6" strokeWidth={1.8} />
                 </div>
-                <p className="mt-4 text-sm font-medium" style={{ color: "var(--sys-muted)" }}>
-                  {s.lead}
-                </p>
-                <p
-                  className="text-[56px] font-bold leading-none tracking-[-0.03em] tabular-nums sm:text-[64px]"
-                  style={{ fontFamily: HEADING_FONT, color: "var(--sys-navy)" }}
-                >
-                  <CountUp value={s.value} suffix={s.suffix} duration={1400} />
-                </p>
+                <div className="mt-4">
+                  <StatNumber s={s} animated />
+                </div>
                 <p className="mt-2 max-w-[240px] text-[15px]" style={{ color: "var(--sys-body)" }}>
                   {s.caption}
                 </p>
@@ -150,7 +366,7 @@ export function StatsStrip() {
             );
           })}
         </Reveal>
-        <FictionalNote className="mt-6 text-center" />
+        <FictionalNote className="mt-2 text-center md:mt-6" />
       </div>
     </section>
   );
@@ -217,14 +433,14 @@ const STEP_MS = 850;
 function Proof({ kind, lit, anim }: { kind: ProofKind; lit: boolean; anim: boolean }) {
   const slow = (delay: number) => (anim ? `${delay}ms` : "0ms");
   const chip =
-    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-semibold";
+    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[13px] font-semibold";
   const shadow = "0 4px 12px rgba(20, 33, 61, 0.08), 0 1px 2px rgba(20, 33, 61, 0.05)";
 
   let body: React.ReactNode = null;
   if (kind === "message") {
     body = (
       <div
-        className="max-w-[170px] rounded-2xl rounded-bl-sm bg-white px-3 py-2 text-left text-[12px]"
+        className="max-w-[240px] rounded-2xl rounded-bl-sm bg-white px-3 py-1.5 text-left text-[13px] lg:max-w-[170px] lg:py-2"
         style={{ border: "1px solid var(--sys-border)", boxShadow: shadow }}
       >
         Hi, can I get a quote for a bathroom?
@@ -233,17 +449,17 @@ function Proof({ kind, lit, anim }: { kind: ProofKind; lit: boolean; anim: boole
   } else if (kind === "reply") {
     body = (
       <div
-        className="max-w-[170px] rounded-2xl rounded-br-sm px-3 py-2 text-left text-[12px] text-white"
+        className="max-w-[240px] rounded-2xl rounded-br-sm px-3 py-1.5 text-left text-[13px] text-white lg:max-w-[170px] lg:py-2"
         style={{ background: "linear-gradient(135deg, #1e88e5, #14a79a)", boxShadow: shadow }}
       >
         Thanks Sam! We can visit Thursday.
-        <span className="mt-0.5 block text-[10px] text-white/80">Sent in 42s</span>
+        <span className="mt-0.5 block text-[13px] text-white/90">Sent in 42s</span>
       </div>
     );
   } else if (kind === "task") {
     body = (
       <div
-        className="flex items-center gap-2 rounded-xl bg-white px-3 py-2 text-[12px]"
+        className="flex items-center gap-2 rounded-xl bg-white px-3 py-1.5 text-[13px] lg:py-2"
         style={{ border: "1px solid var(--sys-border)", boxShadow: shadow }}
       >
         <span
@@ -290,7 +506,7 @@ function Proof({ kind, lit, anim }: { kind: ProofKind; lit: boolean; anim: boole
           />
           Quote $4,850
         </span>
-        <span className="text-[11px]" style={{ color: "var(--sys-muted)" }}>
+        <span className="text-[13px]" style={{ color: "var(--sys-muted)" }}>
           Follow-up in 2 days
         </span>
       </div>
@@ -313,16 +529,16 @@ function Proof({ kind, lit, anim }: { kind: ProofKind; lit: boolean; anim: boole
   } else {
     body = (
       <div
-        className="w-[150px] rounded-xl bg-white p-2 text-left"
+        className="w-[170px] max-w-full rounded-xl bg-white p-2 text-left"
         style={{ border: "1px solid var(--sys-border)", boxShadow: shadow }}
       >
-        <p className="text-[10px] font-semibold" style={{ color: "var(--sys-muted)" }}>
+        <p className="text-[13px] font-semibold leading-4" style={{ color: "var(--sys-muted)" }}>
           Thursday
         </p>
         {["9:00", "11:00", "1:00"].map((t, i) => (
           <div
             key={t}
-            className="relative mt-1 h-5 overflow-hidden rounded-md"
+            className="relative mt-1 h-6 overflow-hidden rounded-md"
             style={{ backgroundColor: "#EEF3F8" }}
           >
             {i === 1 ? (
@@ -336,11 +552,11 @@ function Proof({ kind, lit, anim }: { kind: ProofKind; lit: boolean; anim: boole
               />
             ) : null}
             <span
-              className="relative px-1.5 text-[10px] font-semibold leading-5"
+              className="relative whitespace-nowrap px-1.5 text-[13px] font-semibold leading-6"
               style={{ color: i === 1 && lit ? "#fff" : "var(--sys-body)" }}
             >
               {t}
-              {i === 1 ? " Sam, bathroom" : ""}
+              {i === 1 ? " Sam" : ""}
             </span>
           </div>
         ))}
@@ -350,7 +566,7 @@ function Proof({ kind, lit, anim }: { kind: ProofKind; lit: boolean; anim: boole
 
   return (
     <div
-      className="mt-4 flex min-h-[64px] justify-start lg:justify-center"
+      className="mt-2 flex min-h-[44px] justify-start lg:mt-4 lg:min-h-[64px] lg:justify-center"
       style={{
         opacity: lit ? 1 : 0,
         transform: lit ? "none" : "translateY(28px)",
@@ -388,13 +604,13 @@ export function JourneySection() {
   const glow = "0 0 0 6px rgba(30, 136, 229, 0.16), 0 8px 22px rgba(30, 136, 229, 0.35)";
 
   return (
-    <section ref={ref} className="sys-section-tinted px-4 py-14 sm:px-6 sm:py-20">
+    <section ref={ref} className="sys-section-tinted px-4 py-10 sm:px-6 sm:py-20">
       <SectionHeader
         navyTitle="From first message to"
         gradientTitle="booked job."
         sub="Watch one enquiry travel through your business, with nobody chasing it."
       />
-      <div className="mx-auto mt-12 max-w-[1120px]">
+      <div className="mx-auto mt-8 max-w-[1120px] lg:mt-12">
         <div className="relative">
           {/* Desktop path: draws itself, with a glowing dot riding along it. */}
           <div
@@ -457,12 +673,12 @@ export function JourneySection() {
               return (
                 <li
                   key={n.title}
-                  className="relative flex gap-4 pb-8 last:pb-0 lg:block lg:pb-0 lg:text-center"
+                  className="relative flex gap-3 pb-4 last:pb-0 lg:block lg:pb-0 lg:text-center"
                 >
                   {/* Mobile: a line segment from this node down to the next. */}
                   {!last ? (
                     <span
-                      className="absolute bottom-0 left-[25px] top-[52px] w-[3px] rounded-full lg:hidden"
+                      className="absolute bottom-0 left-[20px] top-[44px] w-[3px] rounded-full lg:hidden"
                       style={{ backgroundColor: "#dbe5ef" }}
                       aria-hidden="true"
                     >
@@ -478,7 +694,7 @@ export function JourneySection() {
                   ) : null}
                   <div className="relative z-10 shrink-0 lg:mx-auto lg:w-[52px]">
                     <div
-                      className="flex h-[52px] w-[52px] items-center justify-center rounded-2xl"
+                      className="flex h-11 w-11 items-center justify-center rounded-2xl lg:h-[52px] lg:w-[52px]"
                       style={{
                         color: lit ? "#fff" : "var(--sys-muted)",
                         background: lit
@@ -865,7 +1081,7 @@ function Tile({
 }) {
   return (
     <div
-      className="flex min-h-[104px] flex-col rounded-xl p-3"
+      className="flex min-h-[92px] flex-col rounded-xl p-3 sm:min-h-[104px]"
       style={{
         background: muted ? "rgba(255,255,255,0.7)" : "linear-gradient(160deg, #ffffff, #f1f8f6)",
         border: `1px solid ${muted ? "#DADEE4" : "var(--sys-border)"}`,
@@ -899,6 +1115,7 @@ export function BeforeAfterSection() {
   const phase = usePlayOnce(ref, 0.25);
   const reduced = usePrefersReducedMotion();
   const [week, setWeek] = useState(100);
+  const [tab, setTab] = useState<"without" | "with">("with"); // below lg: one panel at a time
   const [ticks, setTicks] = useState(3); // finished state shows live cards already
   const [live, setLive] = useState(false);
   const raf = useRef(0);
@@ -1023,14 +1240,14 @@ export function BeforeAfterSection() {
 
       <div className="mx-auto mt-10 max-w-[1120px]">
         <div
-          className="mx-auto max-w-[620px] rounded-2xl px-5 py-4"
+          className="mx-auto max-w-[620px] rounded-2xl px-4 py-3 sm:px-5 sm:py-4"
           style={{
             background: "linear-gradient(180deg, #ffffff, #f4f8fc)",
             border: "1px solid var(--sys-border)",
             boxShadow: "var(--sys-card-shadow)",
           }}
         >
-          <div className="flex items-baseline justify-between">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-3">
             <label
               htmlFor="sys-week-slider"
               className="text-[15px] font-bold"
@@ -1068,10 +1285,62 @@ export function BeforeAfterSection() {
           </div>
         </div>
 
-        <div className="mt-8 grid gap-6 lg:grid-cols-2">
+        {/* Below lg the two panels become a segmented switch; the slider drives both. */}
+        <div
+          role="tablist"
+          aria-label="Compare without and with Systemations"
+          className="mx-auto mt-5 grid max-w-[620px] grid-cols-2 gap-1 rounded-2xl p-1 lg:hidden"
+          style={{ backgroundColor: "#E9EEF4", border: "1px solid var(--sys-border)" }}
+          onKeyDown={(e) => {
+            if (e.key !== "ArrowLeft" && e.key !== "ArrowRight") return;
+            e.preventDefault();
+            const next = tab === "with" ? "without" : "with";
+            setTab(next);
+            document.getElementById(`sys-ba-tab-${next}`)?.focus();
+          }}
+        >
+          {(
+            [
+              ["without", "Without Systemations"],
+              ["with", "With Systemations"],
+            ] as const
+          ).map(([key, label]) => {
+            const active = tab === key;
+            return (
+              <button
+                key={key}
+                id={`sys-ba-tab-${key}`}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                aria-controls={`sys-ba-panel-${key}`}
+                tabIndex={active ? 0 : -1}
+                onClick={() => setTab(key)}
+                className="min-h-[44px] rounded-xl px-2 text-[14px] font-bold leading-tight focus-visible:outline-2 focus-visible:outline-offset-2"
+                style={{
+                  fontFamily: HEADING_FONT,
+                  outlineColor: "var(--sys-blue)",
+                  color: active ? "var(--sys-navy)" : "var(--sys-muted)",
+                  backgroundColor: active ? "#ffffff" : "transparent",
+                  boxShadow: active
+                    ? "0 4px 12px rgba(20,33,61,0.12), 0 1px 2px rgba(20,33,61,0.08)"
+                    : "none",
+                  transition: "background-color 200ms ease-out, color 200ms ease-out",
+                }}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="mt-4 grid gap-6 lg:mt-8 lg:grid-cols-2">
           {/* Without */}
           <div
-            className="flex flex-col rounded-[22px] p-4 sm:p-6"
+            id="sys-ba-panel-without"
+            role="tabpanel"
+            aria-labelledby="sys-ba-tab-without"
+            className={`${tab === "without" ? "flex" : "hidden"} flex-col rounded-[22px] p-4 sm:p-6 lg:flex`}
             style={{
               backgroundColor: "#F3F4F6",
               border: "1px solid #E1E4E9",
@@ -1079,10 +1348,10 @@ export function BeforeAfterSection() {
             }}
           >
             <h3
-              className="mb-4 text-[20px] font-bold"
+              className="mb-4 text-[20px] font-bold max-lg:sr-only"
               style={{ fontFamily: HEADING_FONT, color: "#5b6573" }}
             >
-              Without
+              Without Systemations
             </h3>
             <LaneBox
               tone="without"
@@ -1180,7 +1449,10 @@ export function BeforeAfterSection() {
 
           {/* With */}
           <div
-            className="relative flex flex-col overflow-hidden rounded-[22px] bg-white p-4 sm:p-6"
+            id="sys-ba-panel-with"
+            role="tabpanel"
+            aria-labelledby="sys-ba-tab-with"
+            className={`relative ${tab === "with" ? "flex" : "hidden"} flex-col overflow-hidden rounded-[22px] bg-white p-4 sm:p-6 lg:flex`}
             style={{
               border: "1px solid var(--sys-border)",
               boxShadow: "var(--sys-card-shadow), 0 24px 48px -24px rgba(30,136,229,0.28)",
@@ -1192,7 +1464,7 @@ export function BeforeAfterSection() {
               aria-hidden="true"
             />
             <h3
-              className="mb-4 text-[20px] font-bold"
+              className="mb-4 text-[20px] font-bold max-lg:sr-only"
               style={{ fontFamily: HEADING_FONT, color: "var(--sys-navy)" }}
             >
               With Systemations

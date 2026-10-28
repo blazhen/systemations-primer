@@ -185,7 +185,7 @@ export function TextDemo({
           brief ? (
             <LiveChatWidget brief={brief} onSwitchToGuided={() => onModeChange("guided")} />
           ) : (
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <p className="text-sm leading-relaxed" style={{ color: "var(--sys-body)" }}>
                 Add your business details above to try a personalised conversation.
               </p>
@@ -195,7 +195,10 @@ export function TextDemo({
           <>
             <LiveChatWidget onSwitchToGuided={() => onModeChange("guided")} />
             {brief && (
-              <p className="text-center text-xs" style={{ color: "var(--sys-muted)" }}>
+              <p
+                className="text-center text-[13px] sm:text-xs"
+                style={{ color: "var(--sys-muted)" }}
+              >
                 Send restart in the chat to begin another example.
               </p>
             )}
@@ -207,7 +210,7 @@ export function TextDemo({
             <div>
               <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <GuidedBadge />
-                <div className="flex flex-wrap gap-2">
+                <div className="-mx-4 flex w-[calc(100%+2rem)] snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:w-auto sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
                   {(["new-enquiry", "quote-followup", "booking-reminder"] as TextScenarioId[]).map(
                     (id) => {
                       const active = scenarioId === id;
@@ -217,7 +220,7 @@ export function TextDemo({
                           type="button"
                           aria-pressed={active}
                           onClick={() => onScenario(id)}
-                          className="inline-flex min-h-11 items-center rounded-full px-3.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                          className="inline-flex min-h-11 shrink-0 snap-start items-center whitespace-nowrap rounded-full px-3.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                           style={{
                             backgroundColor: active ? "var(--sys-blue)" : "white",
                             color: active ? "#fff" : "var(--sys-navy)",
@@ -238,7 +241,7 @@ export function TextDemo({
                   style={{ borderColor: "var(--sys-border)" }}
                 >
                   <div
-                    className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-bold text-white"
+                    className="flex h-9 w-9 items-center justify-center rounded-full text-[13px] sm:text-xs font-bold text-white"
                     style={{ background: "linear-gradient(135deg, #1E6FB8, #174A78)" }}
                   >
                     CS
@@ -247,7 +250,10 @@ export function TextDemo({
                     <div className="text-sm font-bold" style={{ color: "var(--sys-navy)" }}>
                       Coastal Services
                     </div>
-                    <div className="text-[11px]" style={{ color: "var(--sys-green-text)" }}>
+                    <div
+                      className="text-[13px] sm:text-[11px]"
+                      style={{ color: "var(--sys-green-text)" }}
+                    >
                       <span className="inline-flex items-center gap-1">
                         <span
                           className="h-1.5 w-1.5 rounded-full"
@@ -260,12 +266,12 @@ export function TextDemo({
                 </div>
 
                 <div
-                  className="flex-1 space-y-3 overflow-y-auto py-4"
+                  className="flex-1 space-y-3 overflow-y-auto overscroll-contain py-3 sm:py-4"
                   role="log"
                   aria-label="Sample conversation"
                 >
                   <div
-                    className="text-center text-[10px] font-medium uppercase tracking-wider"
+                    className="text-center text-[13px] sm:text-[10px] font-medium uppercase tracking-wider"
                     style={{ color: "var(--sys-muted)" }}
                   >
                     Sample conversation
@@ -278,13 +284,13 @@ export function TextDemo({
                         className={`flex ${isAssistant ? "justify-start" : "justify-end"}`}
                       >
                         <div
-                          className="max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug"
+                          className="max-w-[88%] sm:max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-snug"
                           style={{
                             backgroundColor: isAssistant ? "#F1F5F9" : "var(--sys-blue)",
                             color: isAssistant ? "var(--sys-navy)" : "#fff",
                           }}
                         >
-                          <div className="mb-0.5 text-[10px] font-bold uppercase tracking-wider opacity-70">
+                          <div className="mb-0.5 text-[13px] sm:text-[10px] font-bold uppercase tracking-wider opacity-70">
                             {isAssistant ? "Coastal Services" : "You"}
                           </div>
                           {msg.text}
@@ -296,7 +302,7 @@ export function TextDemo({
 
                 <div className="border-t pt-3" style={{ borderColor: "var(--sys-border)" }}>
                   <div
-                    className="mb-2 text-[10px] font-semibold uppercase tracking-wider"
+                    className="mb-2 text-[13px] sm:text-[10px] font-semibold uppercase tracking-wider"
                     style={{ color: "var(--sys-muted)" }}
                   >
                     {finished
@@ -311,7 +317,7 @@ export function TextDemo({
                           key={i}
                           type="button"
                           onClick={() => chooseReply(reply)}
-                          className="flex min-h-11 items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                          className="flex min-h-11 items-center gap-1.5 rounded-full px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-all duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                           style={{
                             backgroundColor: done ? "rgba(16, 185, 129, 0.1)" : "white",
                             color: done ? "var(--sys-green-text)" : "var(--sys-blue-dark)",
@@ -328,13 +334,13 @@ export function TextDemo({
               </PhoneMockup>
 
               <div className="mt-4 flex items-center justify-between">
-                <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                   Sample data only. No real messages are sent.
                 </p>
                 <button
                   type="button"
                   onClick={() => reset()}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
                   style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
                 >
                   <RefreshCw className="h-3 w-3" strokeWidth={2} />

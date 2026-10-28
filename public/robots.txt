@@ -1,14 +1,8 @@
-User-agent: Googlebot
-Allow: /
-
-User-agent: Bingbot
-Allow: /
-
-User-agent: Twitterbot
-Allow: /
-
-User-agent: facebookexternalhit
-Allow: /
-
+# Pages are kept out of search engines with a "noindex, nofollow" meta robots tag
+# (see src/lib/seo.ts), so nothing is blocked here. Crawlers must be able to read
+# the page to see that tag.
 User-agent: *
-Allow: /
+Disallow:
+
+# Once the live domain is known and the pages are made indexable, add:
+# Sitemap: https://example.com.au/sitemap.xml

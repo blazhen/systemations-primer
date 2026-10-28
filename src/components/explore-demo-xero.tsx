@@ -24,23 +24,26 @@ export function XeroDemo() {
         >
           Bookkeeping
         </h3>
-        <p className="mt-2 text-xs" style={{ color: "var(--sys-muted)" }}>
+        <p className="mt-2 text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
           Shown in Xero. We can explore QuickBooks and other accounting software on your call.
         </p>
       </div>
       <div className="flex flex-wrap items-center justify-center gap-2">
-        <span className="text-xs font-semibold" style={{ color: "var(--sys-muted)" }}>
+        <span
+          className="text-[13px] font-semibold sm:text-xs"
+          style={{ color: "var(--sys-muted)" }}
+        >
           Example only · fictional data · Nothing is sent or posted to Xero.
         </span>
       </div>
 
       {/* Scenario selectors */}
-      <div className="flex flex-col gap-2 sm:flex-row">
+      <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
         <button
           type="button"
           aria-pressed={scenario === "bills"}
           onClick={() => setScenario("bills")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+          className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm sm:px-4 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
           style={{
             backgroundColor: scenario === "bills" ? "var(--sys-navy)" : "white",
             color: scenario === "bills" ? "#fff" : "var(--sys-navy)",
@@ -53,7 +56,7 @@ export function XeroDemo() {
           type="button"
           aria-pressed={scenario === "invoicing"}
           onClick={() => setScenario("invoicing")}
-          className="inline-flex h-11 flex-1 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+          className="inline-flex h-11 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-full px-3 text-sm sm:px-4 font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
           style={{
             backgroundColor: scenario === "invoicing" ? "var(--sys-navy)" : "white",
             color: scenario === "invoicing" ? "#fff" : "var(--sys-navy)",
@@ -74,7 +77,7 @@ export function XeroDemo() {
         }}
       >
         <details>
-          <summary className="flex cursor-pointer items-center justify-between gap-4 p-5 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50">
+          <summary className="flex min-h-11 cursor-pointer items-center justify-between gap-4 p-4 text-left sm:p-5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50">
             <span
               className="text-base font-bold"
               style={{
@@ -92,16 +95,22 @@ export function XeroDemo() {
             </span>
           </summary>
           <div
-            className="space-y-3 border-t px-5 pb-5 pt-4"
+            className="space-y-3 border-t px-4 pb-4 pt-4 sm:px-5 sm:pb-5"
             style={{ borderColor: "var(--sys-border)" }}
           >
-            <p className="text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+            <p
+              className="text-[13px] leading-relaxed sm:text-xs"
+              style={{ color: "var(--sys-body)" }}
+            >
               <strong style={{ color: "var(--sys-navy)" }}>Built around your setup:</strong> Xero's
               capture tools can prepare documents; Systemations can coordinate collection, follow-up
               and approvals. Custom steps and accounting mappings are agreed and tested for your
               build.
             </p>
-            <p className="text-[11px] leading-relaxed" style={{ color: "var(--sys-muted)" }}>
+            <p
+              className="text-[13px] leading-relaxed sm:text-[11px]"
+              style={{ color: "var(--sys-muted)" }}
+            >
               Bank reconciliation depends on Xero's own tools and plan. This preview does not
               reconcile bank feeds or make payments.
             </p>

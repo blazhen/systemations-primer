@@ -6,6 +6,20 @@ import { Check, Clock, FileText, Maximize2, Paperclip, Receipt, X } from "lucide
 // All data is fictional sample data. This is a browser-local concept
 // preview, not a live Xero connection or deployed AI integration.
 
+// True when the viewport is at least `px` wide. Null until mounted, so the server
+// and first browser render agree (callers then rely on CSS breakpoints).
+export function useMinWidth(px: number): boolean | null {
+  const [wide, setWide] = useState<boolean | null>(null);
+  useEffect(() => {
+    const mq = window.matchMedia(`(min-width: ${px}px)`);
+    const update = () => setWide(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, [px]);
+  return wide;
+}
+
 export function ConceptBadge() {
   return (
     <span
@@ -25,7 +39,7 @@ export function ConceptBadge() {
 export function AwaitingBadge() {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
       style={{
         backgroundColor: "rgba(245, 158, 11, 0.12)",
         color: "#92400E",
@@ -41,7 +55,7 @@ export function AwaitingBadge() {
 export function ApprovedBadge() {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[11px] font-bold"
       style={{
         backgroundColor: "rgba(16, 185, 129, 0.12)",
         color: "var(--sys-green-text)",
@@ -72,7 +86,7 @@ export function Pair({ label, value }: { label: string; value: string }) {
 
 export function StepIndicator({ steps, current }: { steps: string[]; current: number }) {
   return (
-    <ol className="flex items-center gap-1.5" aria-label="Steps">
+    <ol className="flex items-start gap-1.5" aria-label="Steps">
       {steps.map((label, i) => {
         const s = i + 1;
         const done = current > s;
@@ -84,7 +98,7 @@ export function StepIndicator({ steps, current }: { steps: string[]; current: nu
             className="flex min-w-0 flex-1 list-none flex-col items-center gap-1"
           >
             <div
-              className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-full text-xs font-bold transition-colors sm:h-7 sm:w-7"
               style={{
                 background:
                   active || done ? "linear-gradient(to right, #1E6FB8, #174A78)" : "#F1F5F9",
@@ -94,7 +108,7 @@ export function StepIndicator({ steps, current }: { steps: string[]; current: nu
               {done ? <Check className="h-3.5 w-3.5" strokeWidth={2.6} /> : s}
             </div>
             <span
-              className="text-[10px] font-semibold"
+              className={`text-center text-[13px] font-semibold leading-tight sm:text-[10px] ${active ? "" : "max-sm:sr-only"}`}
               style={{ color: active ? "var(--sys-navy)" : "var(--sys-muted)" }}
             >
               {label}
@@ -135,7 +149,7 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
   const subtotal = lines.reduce((sum, l) => sum + Math.round(l.qty * l.rate * 100) / 100, 0);
   return (
     <div
-      className="min-w-0 overflow-hidden rounded-[16px]"
+      className="min-w-0 overflow-hidden rounded-[16px] max-sm:!shadow-none"
       style={{
         border: "1px solid var(--sys-border)",
         boxShadow: "0 8px 24px rgba(20, 33, 61, 0.08)",
@@ -160,7 +174,7 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
         <div className="flex items-start justify-between gap-3">
           <div>
             <span
-              className="inline-flex items-center rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider"
+              className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold uppercase tracking-wider"
               style={{
                 backgroundColor: "rgba(30, 136, 229, 0.1)",
                 color: "var(--sys-blue-dark)",
@@ -176,14 +190,14 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
               {data.partyName}
             </h4>
             {data.party2Name && (
-              <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+              <p className="text-[13px]" style={{ color: "var(--sys-muted)" }}>
                 {data.party2Name}
               </p>
             )}
           </div>
         </div>
 
-        <dl className="mt-4 grid grid-cols-2 gap-3 text-xs sm:grid-cols-4">
+        <dl className="mt-4 grid grid-cols-2 gap-3 text-[13px] sm:grid-cols-4 sm:text-xs">
           <div>
             <dt className="font-medium" style={{ color: "var(--sys-muted)" }}>
               Reference
@@ -222,8 +236,8 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
           className="mt-4 min-w-0 overflow-x-auto rounded-[10px]"
           style={{ border: "1px solid var(--sys-border)" }}
         >
-          <table className="w-full min-w-[420px] text-xs">
-            <thead>
+          <table className="w-full text-[13px] sm:min-w-[420px] sm:text-xs">
+            <thead className="max-sm:hidden">
               <tr
                 style={{ backgroundColor: "#F8FAFC", borderBottom: "1px solid var(--sys-border)" }}
               >
@@ -253,20 +267,36 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="max-sm:block">
               {lines.map((l, idx) => (
-                <tr key={idx} style={{ borderBottom: "1px solid var(--sys-border)" }}>
-                  <td className="break-words px-3 py-2.5" style={{ color: "var(--sys-navy)" }}>
+                <tr
+                  key={idx}
+                  className="max-sm:block max-sm:px-3 max-sm:py-2"
+                  style={{ borderBottom: "1px solid var(--sys-border)" }}
+                >
+                  <td
+                    className="break-words px-3 py-2.5 max-sm:block max-sm:px-0 max-sm:py-0.5 max-sm:font-semibold"
+                    style={{ color: "var(--sys-navy)" }}
+                  >
                     {l.description}
                   </td>
-                  <td className="px-3 py-2.5 text-right" style={{ color: "var(--sys-navy)" }}>
+                  <td
+                    data-label="Qty"
+                    className="px-3 py-2.5 text-right max-sm:flex max-sm:justify-between max-sm:px-0 max-sm:py-0.5 max-sm:before:content-[attr(data-label)]"
+                    style={{ color: "var(--sys-navy)" }}
+                  >
                     {l.qty}
                   </td>
-                  <td className="px-3 py-2.5 text-right" style={{ color: "var(--sys-navy)" }}>
+                  <td
+                    data-label="Unit amount"
+                    className="px-3 py-2.5 text-right max-sm:flex max-sm:justify-between max-sm:px-0 max-sm:py-0.5 max-sm:before:content-[attr(data-label)]"
+                    style={{ color: "var(--sys-navy)" }}
+                  >
                     {data.currency} {l.rate.toFixed(2)}
                   </td>
                   <td
-                    className="px-3 py-2.5 text-right font-semibold"
+                    data-label="Amount"
+                    className="px-3 py-2.5 text-right font-semibold max-sm:flex max-sm:justify-between max-sm:px-0 max-sm:py-0.5 max-sm:before:content-[attr(data-label)]"
                     style={{ color: "var(--sys-navy)" }}
                   >
                     {data.currency} {(Math.round(l.qty * l.rate * 100) / 100).toFixed(2)}
@@ -278,7 +308,7 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
         </div>
 
         <div className="mt-3 flex justify-end">
-          <dl className="w-full max-w-[200px] space-y-1.5 text-xs">
+          <dl className="w-full max-w-[200px] space-y-1.5 text-[13px] max-sm:max-w-none sm:text-xs">
             <Pair label="Subtotal" value={`${data.currency} ${subtotal.toFixed(2)}`} />
             <Pair label="GST (10%)" value={`${data.currency} ${data.tax.toFixed(2)}`} />
             <div
@@ -312,7 +342,7 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
               {data.documentName}
             </span>
             <span
-              className="ml-auto text-[10px] font-semibold"
+              className="ml-auto text-[13px] font-semibold sm:text-[10px]"
               style={{ color: "var(--sys-muted)" }}
             >
               Sample attachment
@@ -322,7 +352,7 @@ export function XeroConceptWorkspace({ data }: { data: WorkspaceData }) {
 
         {data.reviewerNote && (
           <div
-            className="mt-3 rounded-[10px] px-3 py-2.5 text-xs font-medium"
+            className="mt-3 rounded-[10px] px-3 py-2.5 text-[13px] font-medium sm:text-xs"
             style={{
               backgroundColor: "rgba(30, 136, 229, 0.06)",
               border: "1px solid rgba(30, 136, 229, 0.15)",
@@ -419,23 +449,22 @@ export function EnlargeModal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-center justify-center p-3 sm:p-6">
+    <div className="fixed inset-0 z-[200] flex items-center justify-center sm:p-6">
       <div
         className="absolute inset-0"
-        style={{ backgroundColor: "rgba(7, 14, 27, 0.82)", backdropFilter: "blur(6px)" }}
+        style={{ backgroundColor: "rgba(7, 14, 27, 0.82)" }}
         onClick={onClose}
       />
       <div
         ref={dialogRef}
-        className="relative flex max-h-full w-full max-w-[900px] flex-col overflow-hidden rounded-[20px] bg-white"
-        style={{ boxShadow: "0 30px 70px -20px rgba(7, 14, 27, 0.6)" }}
+        className="relative flex h-full w-full flex-col overflow-hidden bg-white sm:h-auto sm:max-h-full sm:max-w-[900px] sm:rounded-[20px] sm:shadow-[0_30px_70px_-20px_rgba(7,14,27,0.6)]"
         role="dialog"
         aria-modal="true"
         aria-label="Enlarged example preview, nothing is sent"
         tabIndex={-1}
       >
         <div
-          className="flex items-center justify-between gap-3 border-b px-4 py-3 sm:px-5"
+          className="flex items-center justify-between gap-3 border-b px-4 pb-3 pt-[max(0.75rem,env(safe-area-inset-top))] sm:px-5 sm:pt-3"
           style={{ borderColor: "var(--sys-border)" }}
         >
           <span
@@ -448,14 +477,18 @@ export function EnlargeModal({
             ref={closeRef}
             type="button"
             onClick={onClose}
-            className="inline-flex h-11 w-11 items-center justify-center rounded-full text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
-            style={{ border: "1px solid var(--sys-border)", color: "var(--sys-muted)" }}
+            className="inline-flex h-11 min-w-11 items-center justify-center gap-1.5 rounded-full px-4 text-sm font-bold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+            style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             aria-label="Close enlarged preview"
           >
             <X className="h-4 w-4" strokeWidth={2.4} />
+            <span className="sm:sr-only">Close</span>
           </button>
         </div>
-        <div className="flex-1 overflow-auto p-4 sm:p-6" style={{ backgroundColor: "#F8FAFC" }}>
+        <div
+          className="flex-1 overflow-auto overscroll-contain p-4 pb-[max(1rem,env(safe-area-inset-bottom))] sm:p-6"
+          style={{ backgroundColor: "#F8FAFC" }}
+        >
           {children}
         </div>
       </div>

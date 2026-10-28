@@ -91,7 +91,9 @@ export function Reveal({
 export function useScrollDrift(ref: React.RefObject<HTMLElement | null>) {
   useEffect(() => {
     const el = ref.current;
+    // No parallax for reduced motion or on touch screens (saves scroll work on phones).
     if (!el || window.matchMedia(REDUCE_QUERY).matches) return;
+    if (window.matchMedia("(pointer: coarse)").matches) return;
     let raf = 0;
     const update = () => {
       raf = 0;

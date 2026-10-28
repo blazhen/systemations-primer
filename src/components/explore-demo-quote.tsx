@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { Check, FileText, Plus, Send, Trash2 } from "lucide-react";
 import { Card, IconTile } from "./explore-ui";
+import { useMinWidth } from "./explore-xero-shared";
 import { BUSINESS_NAME, EXAMPLE_LABEL, firstName, useCrm } from "./explore-crm-state";
 
 // ---------------------------------------------------------------------------
@@ -12,12 +13,12 @@ import { BUSINESS_NAME, EXAMPLE_LABEL, firstName, useCrm } from "./explore-crm-s
 const HEADING_FONT = "'Plus Jakarta Sans', sans-serif";
 const FOCUS_RING = "focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50";
 const MOTION = "sys-crm-motion transition-[transform,opacity,background-color,border-color,color]";
-const INPUT_CLASS = `${FOCUS_RING} mt-1 min-h-11 w-full min-w-0 rounded-[12px] bg-white px-3 text-sm`;
+const INPUT_CLASS = `${FOCUS_RING} mt-1 min-h-11 w-full min-w-0 rounded-[12px] bg-white px-3 text-base sm:text-sm`;
 const INPUT_STYLE: React.CSSProperties = {
   border: "1px solid var(--sys-border)",
   color: "var(--sys-navy)",
 };
-const LABEL_CLASS = "block text-xs font-semibold";
+const LABEL_CLASS = "block text-[13px] font-semibold sm:text-xs";
 const MAX_NUMBER = 1_000_000;
 const FIRST_REF = 1050;
 const GST_RATE_PERCENT = 10;
@@ -319,6 +320,13 @@ export function QuoteDemo() {
   const [sending, setSending] = useState(false);
   const [late, setLate] = useState(false);
   const [freshLines, setFreshLines] = useState<number[]>([]);
+  // Phones show one of Edit / Preview at a time; from lg both columns show.
+  const [view, setView] = useState<"edit" | "preview">("edit");
+  const wide = useMinWidth(1024);
+  const showEdit = wide !== false || view === "edit";
+  const showPreview = wide !== false || view === "preview";
+  const editHide = wide === null && view !== "edit" ? "max-lg:hidden" : "";
+  const previewHide = wide === null && view !== "preview" ? "max-lg:hidden" : "";
   const sendTimer = useRef(0);
   useEffect(() => {
     setLate(true);
@@ -390,6 +398,7 @@ export function QuoteDemo() {
       setRefCount((n) => n + 1);
       setAccepted(false);
       setSending(false);
+      setView("edit");
     }, 400);
   }
 
@@ -450,472 +459,559 @@ export function QuoteDemo() {
         </div>
       </div>
 
+      {/* Phones: Edit / Preview switch */}
+      <div
+        role="group"
+        aria-label="Quote view"
+        className="grid grid-cols-2 gap-1 rounded-full p-1 lg:hidden"
+        style={{ backgroundColor: "#EEF2F7" }}
+      >
+        {(["edit", "preview"] as const).map((v) => (
+          <button
+            key={v}
+            type="button"
+            aria-pressed={view === v}
+            onClick={() => setView(v)}
+            className={`${MOTION} ${FOCUS_RING} min-h-11 rounded-full px-3 text-sm font-semibold`}
+            style={{
+              backgroundColor: view === v ? "#fff" : "transparent",
+              color: view === v ? "var(--sys-navy)" : "var(--sys-body)",
+              boxShadow: view === v ? "0 1px 3px rgba(20, 33, 61, 0.12)" : "none",
+            }}
+          >
+            {v === "edit" ? "Edit" : "Preview"}
+          </button>
+        ))}
+      </div>
+
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)]">
         {/* Editor */}
-        <div className="min-w-0 space-y-5">
-          <Card className="min-w-0 !p-5">
-            <section aria-labelledby={`${uid}-lines`}>
-              <div className="flex items-center gap-3">
-                <IconTile icon={FileText} color="var(--sys-blue)" />
-                <PanelTitle id={`${uid}-lines`}>Line items</PanelTitle>
-              </div>
-              <p className="mt-2 text-xs" style={{ color: "var(--sys-muted)" }}>
-                Prices are before GST.
-              </p>
-              <ul className="mt-3 space-y-3">
-                {lines.map((l, i) => {
-                  const name = l.description.trim() || `line ${i + 1}`;
-                  return (
-                    <li key={l.id}>
-                      <Enter
-                        animate={freshLines.includes(l.id)}
-                        from="motion-safe:-translate-y-2 motion-safe:opacity-0"
-                      >
-                        <fieldset
-                          className="min-w-0 rounded-[14px] p-3"
-                          style={{
-                            border: "1px solid var(--sys-border)",
-                            backgroundColor: "#F9FAFC",
-                          }}
+        {showEdit ? (
+          <div className={`min-w-0 space-y-5 ${editHide}`}>
+            <Card className="min-w-0 !p-4 sm:!p-5">
+              <section aria-labelledby={`${uid}-lines`}>
+                <div className="flex items-center gap-3">
+                  <IconTile icon={FileText} color="var(--sys-blue)" />
+                  <PanelTitle id={`${uid}-lines`}>Line items</PanelTitle>
+                </div>
+                <p className="mt-2 text-xs" style={{ color: "var(--sys-muted)" }}>
+                  Prices are before GST.
+                </p>
+                <ul className="mt-3 space-y-3">
+                  {lines.map((l, i) => {
+                    const name = l.description.trim() || `line ${i + 1}`;
+                    return (
+                      <li key={l.id}>
+                        <Enter
+                          animate={freshLines.includes(l.id)}
+                          from="motion-safe:-translate-y-2 motion-safe:opacity-0"
                         >
-                          <legend
-                            className="px-1 text-xs font-bold"
-                            style={{ color: "var(--sys-muted)" }}
+                          <fieldset
+                            className="min-w-0 rounded-[14px] p-3"
+                            style={{
+                              border: "1px solid var(--sys-border)",
+                              backgroundColor: "#F9FAFC",
+                            }}
                           >
-                            Line {i + 1}
-                          </legend>
-                          <div className="min-w-0">
-                            <label
-                              htmlFor={`${uid}-d-${l.id}`}
-                              className={LABEL_CLASS}
-                              style={{ color: "var(--sys-navy)" }}
+                            <legend
+                              className="px-1 text-xs font-bold"
+                              style={{ color: "var(--sys-muted)" }}
                             >
-                              Description
-                            </label>
-                            <input
-                              id={`${uid}-d-${l.id}`}
-                              type="text"
-                              value={l.description}
-                              maxLength={80}
-                              autoComplete="off"
-                              onChange={(e) => patchLine(l.id, { description: e.target.value })}
-                              className={INPUT_CLASS}
-                              style={INPUT_STYLE}
-                            />
-                          </div>
-                          <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+                              Line {i + 1}
+                            </legend>
                             <div className="min-w-0">
                               <label
-                                htmlFor={`${uid}-q-${l.id}`}
+                                htmlFor={`${uid}-d-${l.id}`}
                                 className={LABEL_CLASS}
                                 style={{ color: "var(--sys-navy)" }}
                               >
-                                Quantity
+                                Description
                               </label>
                               <input
-                                id={`${uid}-q-${l.id}`}
+                                id={`${uid}-d-${l.id}`}
                                 type="text"
-                                inputMode="decimal"
-                                value={l.quantity}
+                                value={l.description}
+                                maxLength={80}
                                 autoComplete="off"
-                                onChange={(e) =>
-                                  patchLine(l.id, {
-                                    quantity: cleanNumberInput(
-                                      e.target.value,
-                                      l.quantity,
-                                      2,
-                                      MAX_NUMBER,
-                                    ),
-                                  })
-                                }
-                                className={`${INPUT_CLASS} tabular-nums`}
-                                style={INPUT_STYLE}
-                              />
-                            </div>
-                            <div className="min-w-0">
-                              <label
-                                htmlFor={`${uid}-u-${l.id}`}
-                                className={LABEL_CLASS}
-                                style={{ color: "var(--sys-navy)" }}
-                              >
-                                Unit
-                              </label>
-                              <input
-                                id={`${uid}-u-${l.id}`}
-                                type="text"
-                                value={l.unit}
-                                maxLength={12}
-                                autoComplete="off"
-                                onChange={(e) => patchLine(l.id, { unit: e.target.value })}
+                                onChange={(e) => patchLine(l.id, { description: e.target.value })}
                                 className={INPUT_CLASS}
                                 style={INPUT_STYLE}
                               />
                             </div>
-                            <div className="col-span-2 min-w-0 sm:col-span-1">
-                              <label
-                                htmlFor={`${uid}-p-${l.id}`}
-                                className={LABEL_CLASS}
-                                style={{ color: "var(--sys-navy)" }}
+                            <div className="mt-2 grid grid-cols-3 gap-2 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end">
+                              <div className="min-w-0">
+                                <label
+                                  htmlFor={`${uid}-q-${l.id}`}
+                                  className={LABEL_CLASS}
+                                  style={{ color: "var(--sys-navy)" }}
+                                >
+                                  <span className="sm:hidden">Qty</span>
+                                  <span className="hidden sm:inline">Quantity</span>
+                                </label>
+                                <input
+                                  id={`${uid}-q-${l.id}`}
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={l.quantity}
+                                  autoComplete="off"
+                                  onChange={(e) =>
+                                    patchLine(l.id, {
+                                      quantity: cleanNumberInput(
+                                        e.target.value,
+                                        l.quantity,
+                                        2,
+                                        MAX_NUMBER,
+                                      ),
+                                    })
+                                  }
+                                  className={`${INPUT_CLASS} tabular-nums`}
+                                  style={INPUT_STYLE}
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <label
+                                  htmlFor={`${uid}-u-${l.id}`}
+                                  className={LABEL_CLASS}
+                                  style={{ color: "var(--sys-navy)" }}
+                                >
+                                  Unit
+                                </label>
+                                <input
+                                  id={`${uid}-u-${l.id}`}
+                                  type="text"
+                                  value={l.unit}
+                                  maxLength={12}
+                                  autoComplete="off"
+                                  onChange={(e) => patchLine(l.id, { unit: e.target.value })}
+                                  className={INPUT_CLASS}
+                                  style={INPUT_STYLE}
+                                />
+                              </div>
+                              <div className="min-w-0">
+                                <label
+                                  htmlFor={`${uid}-p-${l.id}`}
+                                  className={LABEL_CLASS}
+                                  style={{ color: "var(--sys-navy)" }}
+                                >
+                                  <span className="sm:hidden">Price ex GST</span>
+                                  <span className="hidden sm:inline">Unit price ex GST ($)</span>
+                                </label>
+                                <input
+                                  id={`${uid}-p-${l.id}`}
+                                  type="text"
+                                  inputMode="decimal"
+                                  value={l.price}
+                                  autoComplete="off"
+                                  onChange={(e) =>
+                                    patchLine(l.id, {
+                                      price: cleanNumberInput(
+                                        e.target.value,
+                                        l.price,
+                                        2,
+                                        MAX_NUMBER,
+                                      ),
+                                    })
+                                  }
+                                  className={`${INPUT_CLASS} tabular-nums`}
+                                  style={INPUT_STYLE}
+                                />
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setLines((ls) => ls.filter((x) => x.id !== l.id))}
+                                aria-label={`Remove ${name}`}
+                                className={`${MOTION} ${FOCUS_RING} col-span-3 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold hover:bg-slate-50 sm:col-span-1`}
+                                style={{
+                                  border: "1px solid var(--sys-border)",
+                                  color: "var(--sys-body)",
+                                }}
                               >
-                                Unit price ex GST ($)
-                              </label>
-                              <input
-                                id={`${uid}-p-${l.id}`}
-                                type="text"
-                                inputMode="decimal"
-                                value={l.price}
-                                autoComplete="off"
-                                onChange={(e) =>
-                                  patchLine(l.id, {
-                                    price: cleanNumberInput(e.target.value, l.price, 2, MAX_NUMBER),
-                                  })
-                                }
-                                className={`${INPUT_CLASS} tabular-nums`}
-                                style={INPUT_STYLE}
-                              />
+                                <Trash2 className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                                <span className="sm:sr-only">Remove line</span>
+                              </button>
                             </div>
-                            <button
-                              type="button"
-                              onClick={() => setLines((ls) => ls.filter((x) => x.id !== l.id))}
-                              aria-label={`Remove ${name}`}
-                              className={`${MOTION} ${FOCUS_RING} col-span-2 inline-flex min-h-11 min-w-11 items-center justify-center gap-2 rounded-full bg-white px-3 text-sm font-semibold hover:bg-slate-50 sm:col-span-1`}
-                              style={{
-                                border: "1px solid var(--sys-border)",
-                                color: "var(--sys-body)",
-                              }}
+                            <p
+                              className="mt-2 text-right text-[13px] tabular-nums sm:text-xs"
+                              style={{ color: "var(--sys-muted)" }}
                             >
-                              <Trash2 className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-                              <span className="sm:sr-only">Remove</span>
-                            </button>
-                          </div>
-                          <p
-                            className="mt-2 text-right text-xs tabular-nums"
-                            style={{ color: "var(--sys-muted)" }}
+                              Line total {money(lineCents(l))}
+                            </p>
+                          </fieldset>
+                        </Enter>
+                      </li>
+                    );
+                  })}
+                </ul>
+                {lines.length === 0 ? (
+                  <p className="mt-3 text-sm" style={{ color: "var(--sys-muted)" }}>
+                    No lines yet. Add one to start the quote.
+                  </p>
+                ) : null}
+                <button
+                  type="button"
+                  onClick={() => addLine()}
+                  disabled={lines.length >= 20}
+                  className={`${MOTION} ${FOCUS_RING} mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60`}
+                  style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
+                  Add line
+                </button>
+                <div
+                  role="group"
+                  aria-label="Quick add a line"
+                  className="-mx-4 mt-3 flex snap-x gap-2 overflow-x-auto px-4 pb-1 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0"
+                >
+                  {SUGGESTIONS.map((s) => (
+                    <button
+                      key={s.description}
+                      type="button"
+                      onClick={() => addLine(s)}
+                      disabled={lines.length >= 20}
+                      className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 max-w-full shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full bg-white px-4 text-[13px] font-semibold hover:-translate-y-px sm:shrink sm:whitespace-normal sm:text-xs hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60`}
+                      style={{ border: "1px solid var(--sys-border)", color: "var(--sys-body)" }}
+                    >
+                      <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden="true" />
+                      <span className="min-w-0 break-words">{s.description}</span>
+                    </button>
+                  ))}
+                </div>
+              </section>
+            </Card>
+
+            <Card className="min-w-0 !p-4 sm:!p-5">
+              <fieldset className="min-w-0">
+                <legend
+                  className="text-base font-bold tracking-[-0.01em]"
+                  style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+                >
+                  Optional upgrades
+                </legend>
+                <ul className="mt-3 space-y-2">
+                  {UPGRADES.map((u) => {
+                    const id = `${uid}-up-${u.id}`;
+                    return (
+                      <li key={u.id}>
+                        <label
+                          htmlFor={id}
+                          className={`${MOTION} flex min-h-11 cursor-pointer items-center gap-3 rounded-[12px] p-2 hover:bg-slate-50 sm:p-2.5 sm:hover:-translate-y-px sm:hover:shadow-sm has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-300/50`}
+                          style={{ border: "1px solid var(--sys-border)" }}
+                        >
+                          <input
+                            id={id}
+                            type="checkbox"
+                            checked={picked.includes(u.id)}
+                            onChange={() => toggleUpgrade(u.id)}
+                            className="h-5 w-5 shrink-0 cursor-pointer rounded accent-[#1E6FB8] focus:outline-none"
+                          />
+                          <span
+                            className="min-w-0 flex-1 break-words text-sm font-semibold"
+                            style={{ color: "var(--sys-navy)" }}
                           >
-                            Line total {money(lineCents(l))}
-                          </p>
-                        </fieldset>
-                      </Enter>
-                    </li>
-                  );
-                })}
-              </ul>
-              {lines.length === 0 ? (
-                <p className="mt-3 text-sm" style={{ color: "var(--sys-muted)" }}>
-                  No lines yet. Add one to start the quote.
+                            {u.label}
+                          </span>
+                          <span
+                            className="shrink-0 text-sm tabular-nums"
+                            style={{ color: "var(--sys-body)" }}
+                          >
+                            {money(u.cents)}
+                          </span>
+                        </label>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </fieldset>
+            </Card>
+
+            <Card className="min-w-0 !p-4 sm:!p-5">
+              <section aria-labelledby={`${uid}-totals`}>
+                <PanelTitle id={`${uid}-totals`}>Totals</PanelTitle>
+                <div className="mt-3 max-w-[200px]">
+                  <label
+                    htmlFor={`${uid}-disc`}
+                    className={LABEL_CLASS}
+                    style={{ color: "var(--sys-navy)" }}
+                  >
+                    Discount percent (0 to 50, optional)
+                  </label>
+                  <input
+                    id={`${uid}-disc`}
+                    type="text"
+                    inputMode="decimal"
+                    value={discount}
+                    autoComplete="off"
+                    onChange={(e) => setDiscount(cleanNumberInput(e.target.value, discount, 2, 50))}
+                    className={`${INPUT_CLASS} tabular-nums`}
+                    style={INPUT_STYLE}
+                  />
+                </div>
+                <dl
+                  className="mt-3 divide-y"
+                  aria-live="polite"
+                  style={{ borderColor: "var(--sys-border)" }}
+                >
+                  {totalRows}
+                </dl>
+              </section>
+            </Card>
+
+            <div>
+              <button
+                type="button"
+                onClick={onSend}
+                disabled={!canSend || sending}
+                aria-busy={sending}
+                aria-describedby={canSend ? undefined : hintId}
+                className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold text-white hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 max-lg:hidden sm:w-auto`}
+                style={{
+                  background: "linear-gradient(to right, #1E6FB8, #174A78)",
+                  boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
+                }}
+              >
+                <Send className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+                {sending ? "Sending..." : `Send quote to ${first}`}
+              </button>
+              {!canSend ? (
+                <p
+                  id={hintId}
+                  className="mt-2 text-[13px] sm:text-xs"
+                  style={{ color: "var(--sys-muted)" }}
+                >
+                  Add a line with a price to send the quote.
                 </p>
               ) : null}
-              <button
-                type="button"
-                onClick={() => addLine()}
-                disabled={lines.length >= 20}
-                className={`${MOTION} ${FOCUS_RING} mt-3 inline-flex min-h-11 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-semibold hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60`}
-                style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
-              >
-                <Plus className="h-4 w-4" strokeWidth={2.2} aria-hidden="true" />
-                Add line
-              </button>
-              <div role="group" aria-label="Quick add a line" className="mt-3 flex flex-wrap gap-2">
-                {SUGGESTIONS.map((s) => (
-                  <button
-                    key={s.description}
-                    type="button"
-                    onClick={() => addLine(s)}
-                    disabled={lines.length >= 20}
-                    className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 max-w-full items-center gap-1.5 rounded-full bg-white px-4 text-xs font-semibold hover:-translate-y-px hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60`}
-                    style={{ border: "1px solid var(--sys-border)", color: "var(--sys-body)" }}
-                  >
-                    <Plus className="h-3.5 w-3.5 shrink-0" strokeWidth={2.2} aria-hidden="true" />
-                    <span className="min-w-0 break-words">{s.description}</span>
-                  </button>
-                ))}
-              </div>
-            </section>
-          </Card>
-
-          <Card className="min-w-0 !p-5">
-            <fieldset className="min-w-0">
-              <legend
-                className="text-base font-bold tracking-[-0.01em]"
-                style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
-              >
-                Optional upgrades
-              </legend>
-              <ul className="mt-3 space-y-2">
-                {UPGRADES.map((u) => {
-                  const id = `${uid}-up-${u.id}`;
-                  return (
-                    <li key={u.id}>
-                      <label
-                        htmlFor={id}
-                        className={`${MOTION} flex min-h-11 cursor-pointer items-center gap-3 rounded-[12px] p-2.5 hover:-translate-y-px hover:bg-slate-50 hover:shadow-sm has-[:focus-visible]:ring-4 has-[:focus-visible]:ring-blue-300/50`}
-                        style={{ border: "1px solid var(--sys-border)" }}
-                      >
-                        <input
-                          id={id}
-                          type="checkbox"
-                          checked={picked.includes(u.id)}
-                          onChange={() => toggleUpgrade(u.id)}
-                          className="h-5 w-5 shrink-0 cursor-pointer rounded accent-[#1E6FB8] focus:outline-none"
-                        />
-                        <span
-                          className="min-w-0 flex-1 break-words text-sm font-semibold"
-                          style={{ color: "var(--sys-navy)" }}
-                        >
-                          {u.label}
-                        </span>
-                        <span
-                          className="shrink-0 text-sm tabular-nums"
-                          style={{ color: "var(--sys-body)" }}
-                        >
-                          {money(u.cents)}
-                        </span>
-                      </label>
-                    </li>
-                  );
-                })}
-              </ul>
-            </fieldset>
-          </Card>
-
-          <Card className="min-w-0 !p-5">
-            <section aria-labelledby={`${uid}-totals`}>
-              <PanelTitle id={`${uid}-totals`}>Totals</PanelTitle>
-              <div className="mt-3 max-w-[200px]">
-                <label
-                  htmlFor={`${uid}-disc`}
-                  className={LABEL_CLASS}
-                  style={{ color: "var(--sys-navy)" }}
-                >
-                  Discount percent (0 to 50, optional)
-                </label>
-                <input
-                  id={`${uid}-disc`}
-                  type="text"
-                  inputMode="decimal"
-                  value={discount}
-                  autoComplete="off"
-                  onChange={(e) => setDiscount(cleanNumberInput(e.target.value, discount, 2, 50))}
-                  className={`${INPUT_CLASS} tabular-nums`}
-                  style={INPUT_STYLE}
-                />
-              </div>
-              <dl
-                className="mt-3 divide-y"
-                aria-live="polite"
-                style={{ borderColor: "var(--sys-border)" }}
-              >
-                {totalRows}
-              </dl>
-            </section>
-          </Card>
-
-          <div>
-            <button
-              type="button"
-              onClick={onSend}
-              disabled={!canSend || sending}
-              aria-busy={sending}
-              aria-describedby={canSend ? undefined : hintId}
-              className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full px-6 text-sm font-semibold text-white hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0 sm:w-auto`}
-              style={{
-                background: "linear-gradient(to right, #1E6FB8, #174A78)",
-                boxShadow: "0 6px 16px rgba(30, 111, 184, 0.28)",
-              }}
-            >
-              <Send className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
-              {sending ? "Sending..." : `Send quote to ${first}`}
-            </button>
-            {!canSend ? (
-              <p id={hintId} className="mt-2 text-xs" style={{ color: "var(--sys-muted)" }}>
-                Add a line with a price to send the quote.
-              </p>
-            ) : null}
-            <div role="status" aria-live="polite">
-              {sentHere ? (
-                <Enter
-                  key={sentHere.ref}
-                  animate
-                  from="motion-safe:translate-y-2 motion-safe:scale-95 motion-safe:opacity-0"
-                  className="mt-3"
-                >
-                  <div
-                    className="flex items-start gap-3 rounded-[14px] p-3.5 text-sm font-medium"
-                    style={{
-                      backgroundColor: "rgba(16, 185, 129, 0.08)",
-                      border: "1px solid rgba(16, 185, 129, 0.25)",
-                      color: "var(--sys-green-text)",
-                    }}
-                  >
-                    <DrawCheck className="mt-0.5 h-4 w-4 shrink-0" />
-                    <span className="min-w-0 break-words">
-                      Quote sent. {sentHere.name} moved to Quote sent. A follow-up starts in 3 days.
-                      <span className="mt-1 block text-xs font-normal">
-                        See it on the board: open the Pipeline tab. Nothing is really sent in this
-                        demo.
-                      </span>
-                    </span>
-                  </div>
-                </Enter>
-              ) : null}
-            </div>
-          </div>
-        </div>
-
-        {/* Customer view */}
-        <div className="min-w-0">
-          <p
-            className="mb-2 text-xs font-bold uppercase tracking-wider"
-            style={{ color: "var(--sys-muted)" }}
-          >
-            What your customer sees
-          </p>
-          <Card className="min-w-0 !p-5 lg:sticky lg:top-24">
-            <section aria-label="Customer view of the quote">
-              <div className="flex flex-wrap items-start justify-between gap-2">
-                <div className="min-w-0">
-                  <p
-                    className="break-words text-lg font-bold leading-tight"
-                    style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
-                  >
-                    {BUSINESS_NAME}
-                  </p>
-                  <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
-                    Quote {ref}
-                  </p>
-                </div>
-                <span
-                  className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
-                  style={{ backgroundColor: "#EEF2F7", color: "var(--sys-body)" }}
-                >
-                  Valid for 14 days
-                </span>
-              </div>
-              <p className="mt-3 break-words text-sm" style={{ color: "var(--sys-body)" }}>
-                Prepared for{" "}
-                <span className="font-semibold" style={{ color: "var(--sys-navy)" }}>
-                  {selected.name}
-                </span>
-                {selected.company ? `, ${selected.company}` : ""}
-              </p>
-
-              <ul
-                className="mt-3 divide-y"
-                style={{
-                  borderTop: "1px solid var(--sys-border)",
-                  borderColor: "var(--sys-border)",
-                }}
-              >
-                {filledLines.map((l) => (
-                  <PreviewRow
-                    key={l.id}
-                    late={late}
-                    signature={`${l.description}|${l.quantity}|${l.unit}|${l.price}`}
-                  >
-                    <span
-                      className="min-w-0 break-words text-sm"
-                      style={{ color: "var(--sys-navy)" }}
-                    >
-                      {l.description.trim() || "Item"}
-                      <span className="block text-xs" style={{ color: "var(--sys-muted)" }}>
-                        {parseNumber(l.quantity)} {l.unit.trim()} at{" "}
-                        {money(Math.round(parseNumber(l.price) * 100))}
-                      </span>
-                    </span>
-                    <span
-                      className="shrink-0 text-sm font-semibold tabular-nums"
-                      style={{ color: "var(--sys-navy)" }}
-                    >
-                      {money(lineCents(l))}
-                    </span>
-                  </PreviewRow>
-                ))}
-                {chosenUpgrades.map((u) => (
-                  <PreviewRow key={u.id} late={late} signature={`${u.id}|${u.cents}`}>
-                    <span
-                      className="min-w-0 break-words text-sm"
-                      style={{ color: "var(--sys-navy)" }}
-                    >
-                      {u.label}
-                      <span className="block text-xs" style={{ color: "var(--sys-muted)" }}>
-                        Upgrade
-                      </span>
-                    </span>
-                    <span
-                      className="shrink-0 text-sm font-semibold tabular-nums"
-                      style={{ color: "var(--sys-navy)" }}
-                    >
-                      {money(u.cents)}
-                    </span>
-                  </PreviewRow>
-                ))}
-                {filledLines.length === 0 && chosenUpgrades.length === 0 ? (
-                  <li className="py-3 text-sm" style={{ color: "var(--sys-muted)" }}>
-                    Nothing on the quote yet.
-                  </li>
-                ) : null}
-              </ul>
-
-              <dl
-                className="mt-2 divide-y"
-                aria-live="polite"
-                style={{
-                  borderTop: "1px solid var(--sys-border)",
-                  borderColor: "var(--sys-border)",
-                }}
-              >
-                {totalRows}
-              </dl>
-
-              <button
-                type="button"
-                onClick={() => setAccepted((a) => !a)}
-                aria-pressed={accepted}
-                disabled={!canSend}
-                className={`${MOTION} ${FOCUS_RING} relative mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-5 text-sm font-semibold text-white hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0`}
-                style={{ background: "linear-gradient(to right, #1E6FB8, #174A78)" }}
-              >
-                <span
-                  aria-hidden="true"
-                  className={`sys-crm-motion pointer-events-none absolute inset-0 origin-left motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out ${
-                    accepted ? "scale-x-100" : "scale-x-0"
-                  }`}
-                  style={{ background: "linear-gradient(to right, #10B981, #0E9F6E)" }}
-                />
-                <span className="relative inline-flex items-center gap-2">
-                  {accepted ? (
-                    <DrawCheck className="h-4 w-4" />
-                  ) : (
-                    <Check className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
-                  )}
-                  {accepted ? "Quote accepted" : "Accept quote"}
-                </span>
-              </button>
-              <p className="mt-2 text-xs" style={{ color: "var(--sys-muted)" }}>
-                Accepting here is a simulation.
-              </p>
               <div role="status" aria-live="polite">
-                {accepted ? (
+                {sentHere ? (
                   <Enter
+                    key={sentHere.ref}
                     animate
-                    from="motion-safe:-translate-y-1 motion-safe:opacity-0"
-                    className="mt-2"
+                    from="motion-safe:translate-y-2 motion-safe:scale-95 motion-safe:opacity-0"
+                    className="mt-3"
                   >
-                    <p
-                      className="break-words rounded-[12px] p-3 text-sm font-semibold"
+                    <div
+                      className="flex items-start gap-3 rounded-[14px] p-3.5 text-sm font-medium"
                       style={{
                         backgroundColor: "rgba(16, 185, 129, 0.08)",
                         border: "1px solid rgba(16, 185, 129, 0.25)",
                         color: "var(--sys-green-text)",
                       }}
                     >
-                      Thanks {first}. The {money(t.deposit)} deposit would book your job.
-                    </p>
+                      <DrawCheck className="mt-0.5 h-4 w-4 shrink-0" />
+                      <span className="min-w-0 break-words">
+                        Quote sent. {sentHere.name} moved to Quote sent. A follow-up starts in 3
+                        days.
+                        <span className="mt-1 block text-xs font-normal">
+                          See it on the board: open the Pipeline tab. Nothing is really sent in this
+                          demo.
+                        </span>
+                      </span>
+                    </div>
                   </Enter>
                 ) : null}
               </div>
-            </section>
-          </Card>
+            </div>
+          </div>
+        ) : null}
+
+        {/* Customer view */}
+        {showPreview ? (
+          <div className={`min-w-0 ${previewHide}`}>
+            <p
+              className="mb-2 text-xs font-bold uppercase tracking-wider"
+              style={{ color: "var(--sys-muted)" }}
+            >
+              What your customer sees
+            </p>
+            <Card className="min-w-0 !p-4 sm:!p-5 lg:sticky lg:top-24">
+              <section aria-label="Customer view of the quote">
+                <div className="flex flex-wrap items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p
+                      className="break-words text-lg font-bold leading-tight"
+                      style={{ color: "var(--sys-navy)", fontFamily: HEADING_FONT }}
+                    >
+                      {BUSINESS_NAME}
+                    </p>
+                    <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                      Quote {ref}
+                    </p>
+                  </div>
+                  <span
+                    className="rounded-full px-2.5 py-1 text-[11px] font-semibold"
+                    style={{ backgroundColor: "#EEF2F7", color: "var(--sys-body)" }}
+                  >
+                    Valid for 14 days
+                  </span>
+                </div>
+                <p className="mt-3 break-words text-sm" style={{ color: "var(--sys-body)" }}>
+                  Prepared for{" "}
+                  <span className="font-semibold" style={{ color: "var(--sys-navy)" }}>
+                    {selected.name}
+                  </span>
+                  {selected.company ? `, ${selected.company}` : ""}
+                </p>
+
+                <ul
+                  className="mt-3 divide-y"
+                  style={{
+                    borderTop: "1px solid var(--sys-border)",
+                    borderColor: "var(--sys-border)",
+                  }}
+                >
+                  {filledLines.map((l) => (
+                    <PreviewRow
+                      key={l.id}
+                      late={late}
+                      signature={`${l.description}|${l.quantity}|${l.unit}|${l.price}`}
+                    >
+                      <span
+                        className="min-w-0 break-words text-sm"
+                        style={{ color: "var(--sys-navy)" }}
+                      >
+                        {l.description.trim() || "Item"}
+                        <span className="block text-xs" style={{ color: "var(--sys-muted)" }}>
+                          {parseNumber(l.quantity)} {l.unit.trim()} at{" "}
+                          {money(Math.round(parseNumber(l.price) * 100))}
+                        </span>
+                      </span>
+                      <span
+                        className="shrink-0 text-sm font-semibold tabular-nums"
+                        style={{ color: "var(--sys-navy)" }}
+                      >
+                        {money(lineCents(l))}
+                      </span>
+                    </PreviewRow>
+                  ))}
+                  {chosenUpgrades.map((u) => (
+                    <PreviewRow key={u.id} late={late} signature={`${u.id}|${u.cents}`}>
+                      <span
+                        className="min-w-0 break-words text-sm"
+                        style={{ color: "var(--sys-navy)" }}
+                      >
+                        {u.label}
+                        <span className="block text-xs" style={{ color: "var(--sys-muted)" }}>
+                          Upgrade
+                        </span>
+                      </span>
+                      <span
+                        className="shrink-0 text-sm font-semibold tabular-nums"
+                        style={{ color: "var(--sys-navy)" }}
+                      >
+                        {money(u.cents)}
+                      </span>
+                    </PreviewRow>
+                  ))}
+                  {filledLines.length === 0 && chosenUpgrades.length === 0 ? (
+                    <li className="py-3 text-sm" style={{ color: "var(--sys-muted)" }}>
+                      Nothing on the quote yet.
+                    </li>
+                  ) : null}
+                </ul>
+
+                <dl
+                  className="mt-2 divide-y"
+                  aria-live="polite"
+                  style={{
+                    borderTop: "1px solid var(--sys-border)",
+                    borderColor: "var(--sys-border)",
+                  }}
+                >
+                  {totalRows}
+                </dl>
+
+                <button
+                  type="button"
+                  onClick={() => setAccepted((a) => !a)}
+                  aria-pressed={accepted}
+                  disabled={!canSend}
+                  className={`${MOTION} ${FOCUS_RING} relative mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 overflow-hidden rounded-full px-5 text-sm font-semibold text-white hover:-translate-y-px disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:translate-y-0`}
+                  style={{ background: "linear-gradient(to right, #1E6FB8, #174A78)" }}
+                >
+                  <span
+                    aria-hidden="true"
+                    className={`sys-crm-motion pointer-events-none absolute inset-0 origin-left motion-safe:transition-transform motion-safe:duration-500 motion-safe:ease-out ${
+                      accepted ? "scale-x-100" : "scale-x-0"
+                    }`}
+                    style={{ background: "linear-gradient(to right, #10B981, #0E9F6E)" }}
+                  />
+                  <span className="relative inline-flex items-center gap-2">
+                    {accepted ? (
+                      <DrawCheck className="h-4 w-4" />
+                    ) : (
+                      <Check className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+                    )}
+                    {accepted ? "Quote accepted" : "Accept quote"}
+                  </span>
+                </button>
+                <p className="mt-2 text-xs" style={{ color: "var(--sys-muted)" }}>
+                  Accepting here is a simulation.
+                </p>
+                <div role="status" aria-live="polite">
+                  {accepted ? (
+                    <Enter
+                      animate
+                      from="motion-safe:-translate-y-1 motion-safe:opacity-0"
+                      className="mt-2"
+                    >
+                      <p
+                        className="break-words rounded-[12px] p-3 text-sm font-semibold"
+                        style={{
+                          backgroundColor: "rgba(16, 185, 129, 0.08)",
+                          border: "1px solid rgba(16, 185, 129, 0.25)",
+                          color: "var(--sys-green-text)",
+                        }}
+                      >
+                        Thanks {first}. The {money(t.deposit)} deposit would book your job.
+                      </p>
+                    </Enter>
+                  ) : null}
+                </div>
+              </section>
+            </Card>
+          </div>
+        ) : null}
+      </div>
+
+      {/* Phones: sticky totals bar with the Send button */}
+      <div
+        className="sticky bottom-0 z-20 -mx-1 rounded-t-[16px] bg-white px-4 pt-3 lg:hidden"
+        style={{
+          borderTop: "1px solid var(--sys-border)",
+          paddingBottom: "max(0.75rem, env(safe-area-inset-bottom))",
+        }}
+      >
+        <div className="flex items-center gap-3">
+          <dl className="min-w-0 flex-1 text-[13px] tabular-nums">
+            <div className="flex justify-between gap-2">
+              <dt style={{ color: "var(--sys-body)" }}>Subtotal</dt>
+              <dd className="font-semibold" style={{ color: "var(--sys-navy)" }}>
+                {money(t.subtotal)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-2">
+              <dt style={{ color: "var(--sys-body)" }}>GST</dt>
+              <dd className="font-semibold" style={{ color: "var(--sys-navy)" }}>
+                {money(t.gst)}
+              </dd>
+            </div>
+            <div className="flex justify-between gap-2 text-base font-bold">
+              <dt style={{ color: "var(--sys-navy)" }}>Total</dt>
+              <dd style={{ color: "var(--sys-navy)" }}>{money(t.total)}</dd>
+            </div>
+          </dl>
+          <button
+            type="button"
+            onClick={onSend}
+            disabled={!canSend || sending}
+            aria-busy={sending}
+            aria-label={`Send quote to ${first}`}
+            className={`${MOTION} ${FOCUS_RING} inline-flex min-h-11 shrink-0 items-center justify-center gap-2 rounded-full px-5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60`}
+            style={{ background: "linear-gradient(to right, #1E6FB8, #174A78)" }}
+          >
+            <Send className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+            {sending ? "Sending..." : "Send quote"}
+          </button>
         </div>
       </div>
     </div>

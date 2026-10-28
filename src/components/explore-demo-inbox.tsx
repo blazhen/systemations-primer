@@ -11,7 +11,7 @@ import { DEMO_SCREENSHOTS } from "./explore-data";
 function AwaitingBadge() {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[13px] sm:text-[10px] font-bold"
       style={{
         backgroundColor: "rgba(245, 158, 11, 0.12)",
         color: "#92400E",
@@ -27,7 +27,7 @@ function AwaitingBadge() {
 function ApprovedBadge() {
   return (
     <span
-      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold"
+      className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[13px] sm:text-[10px] font-bold"
       style={{
         backgroundColor: "rgba(16, 185, 129, 0.12)",
         color: "var(--sys-green-text)",
@@ -196,9 +196,9 @@ function DetailPanel({
   const done = status === "done";
   const textId = `draft-${record.id}-${idSuffix}`;
   const btn =
-    "inline-flex min-h-11 items-center gap-1.5 rounded-[12px] px-4 py-2 text-xs font-semibold motion-safe:transition-transform motion-safe:hover:scale-[1.02] motion-safe:active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50";
+    "inline-flex min-h-11 items-center gap-1.5 rounded-[12px] px-4 py-2 text-[13px] sm:text-xs font-semibold motion-safe:transition-transform motion-safe:hover:scale-[1.02] motion-safe:active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50";
   return (
-    <Card className="sys-crm-motion sys-pop p-5">
+    <Card className="sys-crm-motion sys-pop p-4 sm:p-5">
       <div
         className="flex items-center justify-between gap-2 border-b pb-3"
         style={{ borderColor: "var(--sys-border)" }}
@@ -210,7 +210,7 @@ function DetailPanel({
           >
             {record.type}
           </h4>
-          <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+          <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
             {record.from}, {record.business} · {record.owner}
           </p>
         </div>
@@ -218,12 +218,12 @@ function DetailPanel({
       </div>
       <div className="mt-3">
         <div
-          className="text-[10px] font-bold uppercase tracking-wider"
+          className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
           style={{ color: "var(--sys-muted)" }}
         >
           {record.stage === "Draft" ? "Draft" : "Customer message"}
         </div>
-        <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+        <p className="mt-1 text-sm leading-relaxed" style={{ color: "var(--sys-body)" }}>
           {record.body}
         </p>
       </div>
@@ -235,18 +235,21 @@ function DetailPanel({
         }}
       >
         <div
-          className="text-[10px] font-bold uppercase tracking-wider"
+          className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
           style={{ color: "var(--sys-blue-dark)" }}
         >
           Suggested next action
         </div>
-        <p className="mt-1 text-xs leading-relaxed" style={{ color: "var(--sys-navy)" }}>
+        <p
+          className="mt-1 text-[13px] sm:text-xs leading-relaxed"
+          style={{ color: "var(--sys-navy)" }}
+        >
           {NEXT_ACTION[record.id]}
         </p>
       </div>
       <div className="mt-3">
         <label
-          className="text-[10px] font-bold uppercase tracking-wider"
+          className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
           style={{ color: "var(--sys-blue-dark)" }}
           htmlFor={textId}
         >
@@ -294,7 +297,7 @@ function DetailPanel({
       <p
         role="status"
         aria-live="polite"
-        className="mt-2 min-h-4 text-xs"
+        className="mt-2 min-h-4 text-[13px] sm:text-xs"
         style={{ color: "var(--sys-green-text)" }}
       >
         {notice}
@@ -324,7 +327,7 @@ function ItemCard({
       aria-expanded={selected}
       aria-pressed={selected}
       onClick={onSelect}
-      className={`sys-crm-motion sys-lift group flex min-h-11 w-full items-center justify-between gap-3 rounded-[14px] bg-white p-4 text-left motion-safe:transition-[transform,opacity] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${status === "snoozed" ? "opacity-60" : ""}`}
+      className={`sys-crm-motion sys-lift group flex min-h-11 w-full items-center justify-between gap-3 rounded-[14px] bg-white p-3 text-left sm:p-4 motion-safe:transition-[transform,opacity] motion-safe:duration-200 motion-safe:hover:-translate-y-0.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-400 ${status === "snoozed" ? "opacity-60" : ""}`}
       style={{
         border: `1px solid ${selected ? "var(--sys-blue)" : "var(--sys-border)"}`,
         boxShadow: selected
@@ -335,7 +338,7 @@ function ItemCard({
     >
       <span className="flex min-w-0 items-center gap-3">
         <span
-          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-xs font-bold"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[13px] sm:text-xs font-bold"
           style={
             done
               ? { backgroundColor: "rgba(16, 185, 129, 0.14)", color: "var(--sys-green-text)" }
@@ -357,7 +360,10 @@ function ItemCard({
           >
             {record.type}
           </span>
-          <span className="block truncate text-xs" style={{ color: "var(--sys-muted)" }}>
+          <span
+            className="block truncate text-[13px] sm:text-xs"
+            style={{ color: "var(--sys-muted)" }}
+          >
             {record.from}, {record.business} · {record.subject}
           </span>
         </span>
@@ -365,21 +371,21 @@ function ItemCard({
       <span className="flex shrink-0 items-center gap-2">
         {done ? (
           <span
-            className="text-[10px] font-bold uppercase tracking-wider"
+            className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
             style={{ color: "var(--sys-green-text)" }}
           >
             Done
           </span>
         ) : status === "snoozed" ? (
           <span
-            className="text-[10px] font-bold uppercase tracking-wider"
+            className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
             style={{ color: "var(--sys-muted)" }}
           >
             Tomorrow
           </span>
         ) : showPriority ? (
           <span
-            className="text-[10px] font-bold uppercase tracking-wider"
+            className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
             style={{ color: ps.color }}
           >
             {record.priority}
@@ -398,7 +404,7 @@ function ItemCard({
 function GroupLabel({ text }: { text: string }) {
   return (
     <div
-      className="px-1 pt-1 text-[10px] font-bold uppercase tracking-wider"
+      className="px-1 pt-1 text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
       style={{ color: "var(--sys-muted)" }}
     >
       {text}
@@ -472,7 +478,7 @@ function TriageView({
           <button
             type="button"
             onClick={onReset}
-            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+            className="inline-flex min-h-11 items-center gap-1.5 rounded-full bg-white px-3.5 py-1.5 text-[13px] sm:text-xs font-semibold focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
             style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
           >
             <RefreshCw className="h-3 w-3" strokeWidth={2} />
@@ -504,7 +510,10 @@ function TriageView({
             );
           })}
           {grouped && (
-            <p className="text-xs leading-relaxed" style={{ color: "var(--sys-muted)" }}>
+            <p
+              className="text-[13px] sm:text-xs leading-relaxed"
+              style={{ color: "var(--sys-muted)" }}
+            >
               Sample figures showing how your pipeline can be viewed. Nothing is sent.
             </p>
           )}
@@ -515,7 +524,7 @@ function TriageView({
               {panelFor(selected, "side")}
             </div>
           ) : (
-            <Card className="p-5">
+            <Card className="p-4 sm:p-5">
               <p className="text-sm leading-relaxed" style={{ color: "var(--sys-muted)" }}>
                 Choose an item to see the message and suggested reply.
               </p>
@@ -550,12 +559,12 @@ function ReportFigures({ statuses }: { statuses: Record<string, Status> }) {
     { label: "Sample invoice (AUD)", value: String(invoice) },
   ];
   return (
-    <Card className="p-5">
-      <div className="grid gap-3 sm:grid-cols-3">
+    <Card className="p-4 sm:p-5">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
         {tiles.map((t) => (
           <div
             key={t.label}
-            className="rounded-[12px] p-3"
+            className="rounded-[12px] p-3 last:odd:col-span-2 sm:last:odd:col-span-1"
             style={{
               backgroundColor: "rgba(30, 136, 229, 0.05)",
               border: "1px solid var(--sys-border)",
@@ -567,7 +576,7 @@ function ReportFigures({ statuses }: { statuses: Record<string, Status> }) {
             >
               {t.value}
             </div>
-            <div className="text-[11px]" style={{ color: "var(--sys-muted)" }}>
+            <div className="text-[13px] sm:text-[11px]" style={{ color: "var(--sys-muted)" }}>
               {t.label}
             </div>
           </div>
@@ -575,14 +584,14 @@ function ReportFigures({ statuses }: { statuses: Record<string, Status> }) {
       </div>
       <div className="mt-5 space-y-3">
         <div
-          className="text-[10px] font-bold uppercase tracking-wider"
+          className="text-[13px] sm:text-[10px] font-bold uppercase tracking-wider"
           style={{ color: "var(--sys-muted)" }}
         >
           Sample pipeline by stage
         </div>
         {rows.map((r, i) => (
           <div key={r.stage}>
-            <div className="mb-1 flex justify-between text-xs">
+            <div className="mb-1 flex justify-between text-[13px] sm:text-xs">
               <span style={{ color: "var(--sys-navy)" }}>{r.stage}</span>
               <span className="font-semibold tabular-nums" style={{ color: "var(--sys-navy)" }}>
                 {r.count}
@@ -644,12 +653,15 @@ export function InboxDemo() {
   return (
     <div className="mx-auto max-w-[820px] space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <span className="text-xs font-semibold" style={{ color: "var(--sys-muted)" }}>
+        <span
+          className="text-[13px] sm:text-xs font-semibold"
+          style={{ color: "var(--sys-muted)" }}
+        >
           Demo account · fictional data
         </span>
       </div>
 
-      <div className="flex flex-wrap gap-2">
+      <div className="-mx-4 flex snap-x gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0 [&::-webkit-scrollbar]:hidden">
         {INBOX_VIEW_TABS.map((t) => {
           const active = view === t.id;
           return (
@@ -661,7 +673,7 @@ export function InboxDemo() {
                 setView(t.id);
                 setSelectedId(null);
               }}
-              className="inline-flex min-h-11 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-11 shrink-0 snap-start items-center gap-1.5 whitespace-nowrap rounded-full px-3.5 py-1.5 text-[13px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
               style={{
                 backgroundColor: active ? "var(--sys-navy)" : "white",
                 color: active ? "#fff" : "var(--sys-navy)",

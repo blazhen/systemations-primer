@@ -64,7 +64,7 @@ export function BillsReceiptsDemo() {
 
       {/* Step 1: Paperwork */}
       {step === 1 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex items-center gap-3 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -77,7 +77,7 @@ export function BillsReceiptsDemo() {
               >
                 Paperwork
               </h4>
-              <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+              <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                 A supplier invoice arrives for your business
               </p>
             </div>
@@ -93,11 +93,14 @@ export function BillsReceiptsDemo() {
                 style={{ borderColor: "var(--sys-border)" }}
               >
                 <Receipt className="h-4 w-4" style={{ color: "var(--sys-blue)" }} strokeWidth={2} />
-                <span className="text-xs font-bold" style={{ color: "var(--sys-navy)" }}>
+                <span
+                  className="text-[13px] font-bold sm:text-xs"
+                  style={{ color: "var(--sys-navy)" }}
+                >
                   Supplier invoice
                 </span>
               </div>
-              <dl className="mt-3 space-y-2 text-xs">
+              <dl className="mt-3 space-y-2 text-[13px] sm:text-xs">
                 <Pair label="Supplier" value={BILLS_JOB.supplier} />
                 <Pair label="Reference" value={BILLS_JOB.ref} />
                 <Pair label="Date" value={BILLS_JOB.date} />
@@ -122,7 +125,7 @@ export function BillsReceiptsDemo() {
               }}
             >
               <span
-                className="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold"
+                className="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-bold"
                 style={{
                   backgroundColor: "rgba(30, 136, 229, 0.1)",
                   color: "var(--sys-blue-dark)",
@@ -137,7 +140,7 @@ export function BillsReceiptsDemo() {
               >
                 Prepared for review
               </h5>
-              <dl className="mt-3 space-y-2 text-xs">
+              <dl className="mt-3 space-y-2 text-[13px] sm:text-xs">
                 <Pair label="Supplier" value={BILLS_JOB.supplier} />
                 <Pair label="Reference" value={BILLS_JOB.ref} />
                 <Pair label="Date" value={BILLS_JOB.date} />
@@ -163,11 +166,11 @@ export function BillsReceiptsDemo() {
             </div>
           </div>
 
-          <div className="mt-5 flex justify-end">
+          <div className="mt-5 flex flex-col sm:flex-row sm:justify-end">
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="sys-gradient-fill inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
+              className="sys-gradient-fill inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
             >
               Review the prepared details
               <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
@@ -178,7 +181,7 @@ export function BillsReceiptsDemo() {
 
       {/* Step 2: Review */}
       {step === 2 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex flex-wrap items-center justify-between gap-2 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -195,7 +198,7 @@ export function BillsReceiptsDemo() {
                 >
                   Review
                 </h4>
-                <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                   {BILLS_JOB.ref} - {BILLS_JOB.supplier}
                 </p>
               </div>
@@ -217,11 +220,14 @@ export function BillsReceiptsDemo() {
                   style={{ color: "var(--sys-blue)" }}
                   strokeWidth={2}
                 />
-                <span className="text-[11px] font-bold" style={{ color: "var(--sys-navy)" }}>
+                <span
+                  className="text-[13px] font-bold sm:text-[11px]"
+                  style={{ color: "var(--sys-navy)" }}
+                >
                   Source document
                 </span>
               </div>
-              <dl className="mt-2 space-y-1.5 text-xs">
+              <dl className="mt-2 space-y-1.5 text-[13px] sm:text-xs">
                 <Pair label="Supplier" value={BILLS_JOB.supplier} />
                 <Pair label="Reference" value={BILLS_JOB.ref} />
                 <Pair label="Date" value={BILLS_JOB.date} />
@@ -234,12 +240,12 @@ export function BillsReceiptsDemo() {
               style={{ border: "1px solid var(--sys-border)" }}
             >
               <div
-                className="text-[10px] font-bold uppercase tracking-wider"
+                className="text-[13px] font-bold sm:text-[10px] sm:uppercase sm:tracking-wider"
                 style={{ color: "var(--sys-blue-dark)" }}
               >
                 Monetary summary
               </div>
-              <dl className="mt-2 space-y-1.5 text-xs">
+              <dl className="mt-2 space-y-1.5 text-[13px] sm:text-xs">
                 <Pair
                   label="Amount ex GST"
                   value={`${BILLS_JOB.currency} ${BILLS_JOB.rate.toFixed(2)}`}
@@ -262,7 +268,7 @@ export function BillsReceiptsDemo() {
 
           <div className="mt-4">
             <label
-              className="text-[10px] font-bold uppercase tracking-wider"
+              className="text-[13px] font-bold sm:text-[10px] sm:uppercase sm:tracking-wider"
               style={{ color: "var(--sys-blue-dark)" }}
               htmlFor="bills-desc"
             >
@@ -274,7 +280,7 @@ export function BillsReceiptsDemo() {
               maxLength={120}
               onChange={(e) => setDesc(e.target.value)}
               rows={2}
-              className="mt-2 w-full resize-none rounded-[12px] bg-white p-3 text-sm outline-none focus:ring-4 focus:ring-blue-300/30"
+              className="mt-2 w-full resize-none rounded-[12px] bg-white p-3 text-base outline-none sm:text-sm focus:ring-4 focus:ring-blue-300/30"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             />
           </div>
@@ -286,11 +292,17 @@ export function BillsReceiptsDemo() {
               border: "1px solid rgba(20, 167, 154, 0.15)",
             }}
           >
-            <div className="flex items-center justify-between gap-2">
-              <span className="text-xs font-bold" style={{ color: "var(--sys-navy)" }}>
+            <div className="flex flex-wrap items-center justify-between gap-x-2 gap-y-1">
+              <span
+                className="text-[13px] font-bold sm:text-xs"
+                style={{ color: "var(--sys-navy)" }}
+              >
                 Category: Materials & supplies
               </span>
-              <span className="text-[10px] font-semibold" style={{ color: "var(--sys-teal)" }}>
+              <span
+                className="text-[13px] font-semibold sm:text-[10px]"
+                style={{ color: "var(--sys-teal)" }}
+              >
                 Suggestion - confirm with your bookkeeper
               </span>
             </div>
@@ -304,7 +316,7 @@ export function BillsReceiptsDemo() {
             ].map((item) => (
               <div
                 key={item}
-                className="flex items-center gap-2 text-xs"
+                className="flex items-center gap-2 text-[13px] sm:text-xs"
                 style={{ color: "var(--sys-body)" }}
               >
                 <span
@@ -331,16 +343,16 @@ export function BillsReceiptsDemo() {
           >
             <div className="flex items-center gap-2">
               <Clock className="h-3.5 w-3.5" style={{ color: "#92400E" }} strokeWidth={2.4} />
-              <span className="text-xs font-bold" style={{ color: "#92400E" }}>
+              <span className="text-[13px] font-bold sm:text-xs" style={{ color: "#92400E" }}>
                 Missing job reference - needs review
               </span>
             </div>
-            <p className="mt-1 text-[11px]" style={{ color: "var(--sys-body)" }}>
+            <p className="mt-1 text-[13px] sm:text-[11px]" style={{ color: "var(--sys-body)" }}>
               Add a job reference so this bill can be matched to a job. A person checks coding and
               tax before approval.
             </p>
             <label
-              className="mt-2 block text-[10px] font-bold uppercase tracking-wider"
+              className="mt-2 block text-[13px] font-bold sm:text-[10px] sm:uppercase sm:tracking-wider"
               style={{ color: "var(--sys-blue-dark)" }}
               htmlFor="bills-job-ref"
             >
@@ -353,16 +365,16 @@ export function BillsReceiptsDemo() {
               maxLength={40}
               onChange={(e) => setJobRef(e.target.value)}
               placeholder="Optional job reference (sample)"
-              className="mt-2 w-full rounded-[10px] bg-white px-3 py-2 text-xs outline-none focus:ring-4 focus:ring-blue-300/30"
+              className="mt-2 min-h-[44px] w-full rounded-[10px] bg-white px-3 py-2 text-base outline-none sm:text-xs focus:ring-4 focus:ring-blue-300/30"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             />
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => setStep(1)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] bg-white px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] bg-white px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2.4} />
@@ -371,7 +383,7 @@ export function BillsReceiptsDemo() {
             <button
               type="button"
               onClick={() => setStep(3)}
-              className="sys-gradient-fill inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
+              className="sys-gradient-fill inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] px-5 py-2.5 text-sm font-semibold transition-transform hover:scale-[1.02] active:scale-95 focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
             >
               Preview draft bill
               <ArrowRight className="h-4 w-4" strokeWidth={2.4} />
@@ -382,7 +394,7 @@ export function BillsReceiptsDemo() {
 
       {/* Step 3: Draft bill */}
       {step === 3 && (
-        <Card className="p-5">
+        <Card className="!p-4 sm:!p-5">
           <div
             className="flex flex-wrap items-center justify-between gap-2 border-b pb-4"
             style={{ borderColor: "var(--sys-border)" }}
@@ -399,7 +411,7 @@ export function BillsReceiptsDemo() {
                 >
                   Draft bill
                 </h4>
-                <p className="text-xs" style={{ color: "var(--sys-muted)" }}>
+                <p className="text-[13px] sm:text-xs" style={{ color: "var(--sys-muted)" }}>
                   {BILLS_JOB.ref} - {BILLS_JOB.supplier}
                 </p>
               </div>
@@ -407,7 +419,7 @@ export function BillsReceiptsDemo() {
             <button
               type="button"
               onClick={() => setEnlarged(true)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-full bg-white px-4 py-1.5 text-sm font-semibold transition-colors max-sm:w-full max-sm:justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               <Maximize2 className="h-3.5 w-3.5" strokeWidth={2.2} />
@@ -416,7 +428,7 @@ export function BillsReceiptsDemo() {
           </div>
 
           <div
-            className="mt-3 text-[10px] font-bold uppercase tracking-wider"
+            className="mt-3 text-[13px] font-bold sm:text-[10px] sm:uppercase sm:tracking-wider"
             style={{ color: "var(--sys-blue-dark)" }}
           >
             Example of the record in Xero
@@ -431,7 +443,7 @@ export function BillsReceiptsDemo() {
             style={{ border: "1px solid var(--sys-border)", backgroundColor: "#F8FAFC" }}
           >
             <div
-              className="text-[10px] font-bold uppercase tracking-wider"
+              className="text-[13px] font-bold sm:text-[10px] sm:uppercase sm:tracking-wider"
               style={{ color: "var(--sys-blue-dark)" }}
             >
               Systemations workflow record (sample)
@@ -449,7 +461,7 @@ export function BillsReceiptsDemo() {
               ).map((item, idx) => (
                 <div
                   key={idx}
-                  className="flex items-center gap-2 text-xs"
+                  className="flex items-center gap-2 text-[13px] sm:text-xs"
                   style={{ color: "var(--sys-navy)" }}
                 >
                   <span
@@ -475,7 +487,10 @@ export function BillsReceiptsDemo() {
                     )}
                   </span>
                   {item.text}
-                  <span className="text-[10px] font-medium" style={{ color: "var(--sys-muted)" }}>
+                  <span
+                    className="text-[13px] font-medium sm:text-[10px]"
+                    style={{ color: "var(--sys-muted)" }}
+                  >
                     (sample)
                   </span>
                 </div>
@@ -490,7 +505,10 @@ export function BillsReceiptsDemo() {
               border: "1px solid rgba(245, 158, 11, 0.15)",
             }}
           >
-            <p className="text-xs leading-relaxed" style={{ color: "var(--sys-body)" }}>
+            <p
+              className="text-[13px] leading-relaxed sm:text-xs"
+              style={{ color: "var(--sys-body)" }}
+            >
               <strong style={{ color: "var(--sys-navy)" }}>Illustration only</strong> - no data has
               been sent or posted to Xero or any other accounting software. This shows how a draft
               bill could look. In a real build, a bookkeeper would review it before anything is
@@ -498,11 +516,11 @@ export function BillsReceiptsDemo() {
             </p>
           </div>
 
-          <div className="mt-5 flex items-center justify-between gap-2">
+          <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
             <button
               type="button"
               onClick={() => setStep(2)}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] bg-white px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] bg-white px-4 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               <ArrowLeft className="h-4 w-4" strokeWidth={2.4} />
@@ -511,7 +529,7 @@ export function BillsReceiptsDemo() {
             <button
               type="button"
               onClick={reset}
-              className="inline-flex min-h-[44px] items-center gap-1.5 rounded-[14px] bg-white px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
+              className="inline-flex min-h-[44px] items-center max-sm:w-full max-sm:justify-center gap-1.5 rounded-[14px] bg-white px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus-visible:ring-4 focus-visible:ring-blue-300/50"
               style={{ border: "1px solid var(--sys-border)", color: "var(--sys-navy)" }}
             >
               <RefreshCw className="h-4 w-4" strokeWidth={2.4} />
